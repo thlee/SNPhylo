@@ -1,0 +1,201 @@
+#!/bin/bash
+
+# Declare functions
+print_help_and_exit () {
+    echo "Determine phylogenetic tree based on SNP data with a VCF, a HapMap or a GDS file"
+    echo
+    echo "Version: 05102013"
+    echo
+    echo "Usage:"
+    echo "     $(basename $0) -v VCF_file [-p Maximum_PLCS (5)] [-c Minimum_depth_of_coverage (5)]|-H HapMap_file [-p Maximum_PNSS (5)]|-d GDS_file [-l LD_threshold (0.1)] [-m MAF_threshold (0.1)] [-M Missing_rate (0.1)] [-o Outgroup_sample_name] [-P Prefix_of_output_files (snphylo.output)] [-h]"
+    echo
+    echo "Options:"
+    echo "    -h: Show help and exit"
+    echo
+    echo "Acronyms:"
+    echo "    PLCS: The percent of Low Coverage Sample"
+    echo "    PNSS: The percent of Sample which has no SNP information"
+    echo "    LD: Linkage Disequilibrium"
+    echo "    MAF: Minor Allele Frequency"
+    [ -n "$2" ] && echo -e "\n$2"
+    exit $1
+}
+
+## Initialize variables
+# BASE_DIR=$(dirname $(readlink -f "$0")) # readlink in Mac OS X does not support the '-f' option
+BASE_DIR=$(cd "$(dirname "$0")" && pwd)
+SCRIPTS_DIR="${BASE_DIR}/scripts"
+
+source "${BASE_DIR}/snphylo.cfg"
+
+if [ ! -z "${R_LIBS_DIR}" ]
+then
+    if [ -z "${R_LIBS}" ]
+    then
+        export R_LIBS="${R_LIBS_DIR}"
+    else
+        export R_LIBS="${R_LIBS_DIR}:${R_LIBS}"
+    fi
+fi
+
+# In order to use Pypy instead of Python
+PYPY="$(which pypy | tail -n1 | tr -d '\t')"
+[ ! -z "${PYPY}" ] && PYTHON="${PYPY}"
+
+vcf_file=""
+hap_file=""
+gds_file=""
+min_depth_of_coverage=5
+max_plcs_pnss=5
+ld_threshold=0.1
+maf_threshold=0.1
+missing_rate=0.1
+prefix_output="snphylo.output"
+out_sample_id=""
+
+# Parse positional parameters
+while getopts "v:H:d:c:p:l:m:M:P:o:h" OPT
+do
+    case "${OPT}" in
+        'v')
+            vcf_file="${OPTARG}"
+            ;;
+        'H')
+            hap_file="${OPTARG}"
+            ;;
+        'd')
+            gds_file="${OPTARG}"
+            ;;
+        'c')
+            min_depth_of_coverage="${OPTARG}"
+            ;;
+        'p')
+            max_plcs_pnss="${OPTARG}"
+            ;;
+        'l')
+            ld_threshold="${OPTARG}"
+            ;;
+        'm')
+            maf_threshold="${OPTARG}"
+            ;;
+        'M')
+            missing_rate="${OPTARG}"
+            ;;
+        'P')
+            prefix_output="${OPTARG}"
+            ;;
+        'o')
+            out_sample_id="${OPTARG}"
+            ;;
+        'h')
+            print_help_and_exit 0
+            ;;
+        '?')
+            print_help_and_exit 1
+            ;;
+        *)
+            print_help_and_exit 1
+            ;;
+    esac
+done
+
+## Main processes
+[ -z "${vcf_file}${hap_file}${gds_file}" ] && print_help_and_exit 1
+
+if [ ! -z "${vcf_file}" ]
+then
+    [ ! -e "${vcf_file}" ] && print_help_and_exit 1 "VCF file (${vcf_file}) was not found!"
+    [ $(wc -l < "${vcf_file}") -lt 50000 ] && print_help_and_exit 1 "VCF file (${vcf_file}) is too small to run this script!"
+
+    # Remove VCF data which have many low depth of coverage samples
+    echo "Start to remove low quality data."
+    "${PYTHON}" "${SCRIPTS_DIR}/remove_low_depth_genotype_data.py" "${vcf_file}" ${min_depth_of_coverage} ${max_plcs_pnss} > "${prefix_output}.filtered.vcf"
+    [ $? != 0 ] && exit 1
+
+    # Determine and show the number of removed SNP data
+    echo -e "\n$[$(wc -l < "${vcf_file}") - $(wc -l < "${prefix_output}.filtered.vcf")] low quality lines were removed."
+    echo
+
+    # 
+    [ $(wc -l < "${prefix_output}.filtered.vcf") -lt 50000 ] && print_help_and_exit 1 "Error: There are too small number of SNP data in a file (${prefix_output}.filtered.vcf)!\nPlease restart this script with different parameter values (-p and/or -c)."
+
+    # Generate sequences from SNP data
+    "${RSCRIPT}" --vanilla "${SCRIPTS_DIR}/generate_snp_sequence.R" -v "${prefix_output}.filtered.vcf" -l "${ld_threshold}" -m "${maf_threshold}" -M "${missing_rate}" -o "${prefix_output}"
+    [ $? != 0 ] && exit 1
+elif [ ! -z "${hap_file}" ]
+then
+    [ ! -e "${hap_file}" ] && print_help_and_exit 1 "HapMap file (${hap_file}) was not found!"
+    [ $(wc -l < "${hap_file}") -lt 50000 ] && print_help_and_exit 1 "HapMap file (${hap_file}) is too small to run this script!"
+
+    # Remove HapMap data which have many no genotype data
+    echo "Start to remove low quality data."
+
+    "${PYTHON}" "${SCRIPTS_DIR}/remove_no_genotype_data.py" "${hap_file}" ${max_plcs_pnss} > "${prefix_output}.filtered.hapmap"
+    [ $? != 0 ] && exit 1
+
+    # Determine and show the number of removed SNP data
+    echo -e "\n$[$(wc -l < "${hap_file}") - $(wc -l < "${prefix_output}.filtered.hapmap")] low quality lines were removed"
+    echo
+
+    # 
+    [ $(wc -l < "${prefix_output}.filtered.hapmap") -lt 50000 ] && print_help_and_exit 1 "Error: There are too small number of SNP data in a file (${prefix_output}.filtered.hapmap)!\nPlease restart this script with different parameter values (-p)."
+
+    # Generate sequences from SNP data
+    "${RSCRIPT}" --vanilla "${SCRIPTS_DIR}/generate_snp_sequence.R" -H "${prefix_output}.filtered.hapmap" -l "${ld_threshold}" -m "${maf_threshold}" -M "${missing_rate}" -o "${prefix_output}"
+    [ $? != 0 ] && exit 1
+elif [ ! -z "${gds_file}" ]
+then
+    [ ! -e "${gds_file}" ] && print_help_and_exit 1 "GDS file (${gds_file}) was not found!"
+
+    # Generate sequences from SNP data
+    "${RSCRIPT}" --vanilla "${SCRIPTS_DIR}/generate_snp_sequence.R" -d "${gds_file}" -l "${ld_threshold}" -m "${maf_threshold}" -M "${missing_rate}" -o "${prefix_output}"
+    [ $? != 0 ] && exit 1
+else
+    print_help_and_exit 1 "Data file was not found!"
+fi
+
+
+# Check the length of a sequence generated
+seq_len=$(sed -n '2p' ${prefix_output}.fasta | wc -c)
+if [ ${seq_len} -lt 500 ]
+then
+    print_help_and_exit 1 "Error: The length of sequence is too short (< 500 bp) to construct a tree!\nPlease restart this script with different parameter values (-l, -m and/or -M)."
+elif [ ${seq_len} -gt 50000 ]
+then
+    print_help_and_exit 1 "Error: The length of sequence is too long (> 50000 bp) to construct a tree!\nPlease restart this script with different parameter values (-l, -m and/or -M)."
+fi
+
+#~/programs/clustalw/bin/clustalw2 -TYPE=DNA -ALIGN -OUTPUT=PHYLIP -INFILE=${prefix_output}.seq -OUTFILE=${prefix_output}.phylip
+"${MUSCLE}" -phyi -in ${prefix_output}.fasta -out ${prefix_output}.phylip.txt; [ $? != 0 ] && exit 1
+
+## Determine a phylogenetic tree
+for rm_file in outfile outtree
+do
+    [ -e "${rm_file}" ] && rm -f "${rm_file}"
+done
+
+ln -sf ${prefix_output}.phylip.txt infile
+
+if [ -z "${out_sample_id}" ]
+then
+    echo -e "y\n" | "${DNAML}"; [ $? != 0 ] && exit 1
+else
+    out_sample_no=$[$(grep -ne "\<${out_sample_id}\>" infile | cut -f1 -d':') - 1]
+    if [ ${out_sample_no} -eq -1 }
+    then
+        echo "Error!!! There is no sample name (${out_sample_id}) to use as a outgroup in a tree input file (${prefix_output}.phylip.txt)." 1>&2
+        echo "Please check the name and restart this script." 1>&2
+        rm -f infile
+        exit 1
+    else
+        echo -e "o\n${out_sample_no}\ny\n" | "${DNAML}"; [ $? != 0 ] && exit 1
+    fi
+fi
+mv outfile ${prefix_output}.dnaml.txt
+mv outtree ${prefix_output}.dnaml.tree
+
+rm -f infile
+
+echo "The tree file (${prefix_output}.dnaml.tree) is successfully generated!"
+echo "Now, you can see the tree by a viewer program such as FigTree (http://tree.bio.ed.ac.uk/software/figtree/)."
+echo "Good Luck!"

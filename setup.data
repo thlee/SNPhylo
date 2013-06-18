@@ -1,0 +1,4 @@
+RSCRIPT Rscript http://www.r-project.org/index.html
+PYTHON python http://www.python.org/
+MUSCLE muscle http://www.drive5.com/muscle/
+DNAML dnaml http://evolution.genetics.washington.edu/phylip/
