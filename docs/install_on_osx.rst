@@ -6,6 +6,7 @@ On Lion (10.7.5; 64 bit)
 ------------------------
 
 1. Install R and related packages ::
+
     R for Mac can be download at http://cran.rstudio.com/
     After R is installed, three related R-libraries can be installed following online installation
     at http://chibba.pgml.uga.edu/snphylo/.
