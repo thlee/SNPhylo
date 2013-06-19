@@ -86,10 +86,9 @@ On Lion (10.7.5; 64 bit)
     $ gunzip soybean.hapmap.gz
 
     $ /home/foo/snphylo/snphylo.sh -H soybean.hapmap
-    Verbose Messages
+    Start to remove low quality data.
 
     ...... (Verbose Messages)
-
 
     The tree file (snphylo.output.dnaml.tree) is successfully generated!
     Now, you can see the tree by a viewer program such as FigTree (http://tree.bio.ed.ac.uk/software/figtree/).
