@@ -1,10 +1,11 @@
-#!/bin/bash
+
+VERSION="06202013"
 
 # Declare functions
 print_help_and_exit () {
     echo "Determine phylogenetic tree based on SNP data with a VCF, a HapMap or a GDS file"
     echo
-    echo "Version: 05102013"
+    echo "Version: ${VERSION}"
     echo
     echo "Usage:"
     echo "     $(basename $0) -v VCF_file [-p Maximum_PLCS (5)] [-c Minimum_depth_of_coverage (5)]|-H HapMap_file [-p Maximum_PNSS (5)]|-d GDS_file [-l LD_threshold (0.1)] [-m MAF_threshold (0.1)] [-M Missing_rate (0.1)] [-o Outgroup_sample_name] [-P Prefix_of_output_files (snphylo.output)] [-h]"
@@ -39,7 +40,7 @@ then
 fi
 
 # In order to use Pypy instead of Python
-PYPY="$(which pypy | tail -n1 | tr -d '\t')"
+PYPY="$(which pypy 2> /dev/null | tail -n1 | tr -d '\t')"
 [ ! -z "${PYPY}" ] && PYTHON="${PYPY}"
 
 vcf_file=""

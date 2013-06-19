@@ -1,3 +1,5 @@
+VERSION="06202013"
+
 function ask_program_path {
     local program_name="${1}"
 
@@ -93,6 +95,7 @@ BASE_DIR=$(cd "$(dirname "$0")" && pwd)
 
 BASH_PATH="$(which bash 2> /dev/null | tail -n1 | tr -d '\t')" #To remove alias information
 
+echo -e "Version: ${VERSION}\n"
 echo "START TO SET UP FOR SNPHYLO!!!"
 
 [ -e "${BASE_DIR}/snphylo.cfg" ] && rm -f "${BASE_DIR}/snphylo.cfg"
@@ -129,7 +132,7 @@ then
 install.packages("SNPRelate", lib="${BASE_DIR}/R_LIBS/", repos="http://cran.r-project.org", type="source")
 install.packages("getopt", lib="${BASE_DIR}/R_LIBS/", repos="http://cran.r-project.org", type="source")
 R_SCRIPT
-            if [ $(check_R_library "${BASE_DIR}/R_LIBS/") -eq 1 ]
+            if [ $(check_R_library "${BASE_DIR}/R_LIBS/") -eq 1 -o $? -ne 0 ]
             then
                 echo -e "\nFail to install the libraries. :("
                 r_lib_dir=""
