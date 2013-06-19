@@ -52,10 +52,10 @@ On Lion (10.7.5; 64 bit)
 
 5. Install the SNPhylo ::
 
-    $ curl -O http://chibba.pgml.uga.edu/snphylo/snphylo.06202013.tar.gz
+    $ curl -O http://chibba.pgml.uga.edu/snphylo/snphylo.tar.gz
     ...... (Downloading the SNPhylo)
 
-    $ tar xvfz snphylo.06202013.tar.gz -C "${SNPHYLO_HOME}"
+    $ tar xvfz snphylo.tar.gz -C "${SNPHYLO_HOME}"
     ...... (Uncompressing the SNPhylo)
 
 6. Setup the SNPhylo ::
