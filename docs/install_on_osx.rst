@@ -14,7 +14,7 @@ On Lion (10.7.5; 64 bit)
 2. Make a SNPhylo directory in your home directory ::
 
     $ echo ${HOME} # Determine your home directory
-    /home/foo
+    /home/foo (This will be different on your system)
 
     $ SNPHYLO_HOME="/home/foo/snphylo"
 
