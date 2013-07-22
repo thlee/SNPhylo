@@ -5,7 +5,7 @@ import os.path
 def help(error_no):
     print "Remove VCF data which have many low depth of coverage samples"
     print
-    print "Version: 05132013"
+    print "Version: 07222013"
     print
     print "Usage:"
     print "    %s VCF_file Maximum_%%_of_LCS_number Minimum_depth_of_coverage" % os.path.basename(sys.argv[0])
@@ -46,4 +46,4 @@ for vcf_line in open(vcf_file, "r"):
             sys.stdout.write(vcf_line)
 
 if num_wrong_chr_id > 0:
-    print >> sys.stderr, "\nWarning: There were %i unreadable chromosome id%s. Identifier for a chromosome should be the chromosome number." % (num_wrong_chr_id, "s" if num_wrong_chr_id > 1 else "")
+    print >> sys.stderr, "\nWarning: There were %i unreadable chromosome id%s. Identifier for a chromosome should be a number." % (num_wrong_chr_id, "s" if num_wrong_chr_id > 1 else "")

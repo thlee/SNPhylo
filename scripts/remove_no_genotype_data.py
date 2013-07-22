@@ -5,7 +5,7 @@ import os.path
 def help(error_no):
     print "Remove SNP data which have many samples which have no SNP information"
     print
-    print "Version: 05132013"
+    print "Version: 07222013"
     print
     print "Usage:"
     print "    %s HapMap_file Maximum_%%_of_NSS_number" % os.path.basename(sys.argv[0])
@@ -42,4 +42,4 @@ for snp_line in open(hapmap_file, "r"):
             sys.stdout.write(snp_line)
 
 if num_wrong_chr_id > 0:
-    print >> sys.stderr, "\nWarning: There were %i unreadable chromosome id%s. Identifier for a chromosome should be the chromosome number." % (num_wrong_chr_id, "s" if num_wrong_chr_id > 1 else "")
+    print >> sys.stderr, "\nWarning: There were %i unreadable chromosome id%s. Identifier for a chromosome should be a number." % (num_wrong_chr_id, "s" if num_wrong_chr_id > 1 else "")
