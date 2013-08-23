@@ -1,23 +1,32 @@
 
-VERSION="06202013"
+VERSION="08232013"
 
 # Declare functions
 print_help_and_exit () {
-    echo "Determine phylogenetic tree based on SNP data with a VCF, a HapMap or a GDS file"
+    echo -e "Determine phylogenetic tree based on SNP data with a VCF, a HapMap, a Simple SNP or a GDS file"
     echo
-    echo "Version: ${VERSION}"
+    echo -e "Version: ${VERSION}"
     echo
-    echo "Usage:"
-    echo "     $(basename $0) -v VCF_file [-p Maximum_PLCS (5)] [-c Minimum_depth_of_coverage (5)]|-H HapMap_file [-p Maximum_PNSS (5)]|-d GDS_file [-l LD_threshold (0.1)] [-m MAF_threshold (0.1)] [-M Missing_rate (0.1)] [-o Outgroup_sample_name] [-P Prefix_of_output_files (snphylo.output)] [-h]"
+    echo -e "Usage:"
+    echo -e "\t$(basename $0) -v VCF_file [-p Maximum_PLCS (5)] [-c Minimum_depth_of_coverage (5)]|-H HapMap_file [-p Maximum_PNSS (5)]|-s Simple_SNP_file [-p Maximum_PNSS (5)]|-d GDS_file [-l LD_threshold (0.1)] [-m MAF_threshold (0.1)] [-M Missing_rate (0.1)] [-o Outgroup_sample_name] [-P Prefix_of_output_files (snphylo.output)] [-h]"
     echo
-    echo "Options:"
-    echo "    -h: Show help and exit"
+    echo -e "Options:"
+    echo -e "\t-h: Show help and exit"
     echo
-    echo "Acronyms:"
-    echo "    PLCS: The percent of Low Coverage Sample"
-    echo "    PNSS: The percent of Sample which has no SNP information"
-    echo "    LD: Linkage Disequilibrium"
-    echo "    MAF: Minor Allele Frequency"
+    echo -e "Acronyms:"
+    echo -e "\tPLCS: The percent of Low Coverage Sample"
+    echo -e "\tPNSS: The percent of Sample which has no SNP information"
+    echo -e "\tLD: Linkage Disequilibrium"
+    echo -e "\tMAF: Minor Allele Frequency"
+    echo
+    echo -e "Simple SNP File Format:"
+    echo -e "\t#Chrom\tPos\tSampleID1\tSampleID2\tSampleID3\t..."
+    echo -e "\t1\t1000\tA\tA\tT\t..."
+    echo -e "\t1\t1002\tG\tC\tG\t..."
+    echo -e "\t..."
+    echo -e "\t2\t2000\tG\tC\tG\t..."
+    echo -e "\t2\t2002\tA\tA\tT\t..."
+    echo -e "\t..."
     [ -n "$2" ] && echo -e "\n$2"
     exit $1
 }
@@ -44,8 +53,9 @@ PYPY="$(which pypy 2> /dev/null | tail -n1 | tr -d '\t')"
 [ ! -z "${PYPY}" ] && PYTHON="${PYPY}"
 
 vcf_file=""
-hap_file=""
+hap_file="" # HapMap file path
 gds_file=""
+smp_file="" # Simple file path
 min_depth_of_coverage=5
 max_plcs_pnss=5
 ld_threshold=0.1
@@ -55,7 +65,7 @@ prefix_output="snphylo.output"
 out_sample_id=""
 
 # Parse positional parameters
-while getopts "v:H:d:c:p:l:m:M:P:o:h" OPT
+while getopts "v:H:d:c:p:l:m:M:P:o:s:h" OPT
 do
     case "${OPT}" in
         'v')
@@ -66,6 +76,9 @@ do
             ;;
         'd')
             gds_file="${OPTARG}"
+            ;;
+        's')
+            smp_file="${OPTARG}"
             ;;
         'c')
             min_depth_of_coverage="${OPTARG}"
@@ -101,12 +114,12 @@ do
 done
 
 ## Main processes
-[ -z "${vcf_file}${hap_file}${gds_file}" ] && print_help_and_exit 1
+[ -z "${vcf_file}${hap_file}${gds_file}${smp_file}" ] && print_help_and_exit 1
 
 if [ ! -z "${vcf_file}" ]
 then
     [ ! -e "${vcf_file}" ] && print_help_and_exit 1 "VCF file (${vcf_file}) was not found!"
-    [ $(wc -l < "${vcf_file}") -lt 50000 ] && print_help_and_exit 1 "VCF file (${vcf_file}) is too small to run this script!"
+    [ $(wc -l < "${vcf_file}") -lt 10000 ] && print_help_and_exit 1 "VCF file (${vcf_file}) is too small to run this script!"
 
     # Remove VCF data which have many low depth of coverage samples
     echo "Start to remove low quality data."
@@ -118,7 +131,7 @@ then
     echo
 
     # 
-    [ $(wc -l < "${prefix_output}.filtered.vcf") -lt 50000 ] && print_help_and_exit 1 "Error: There are too small number of SNP data in a file (${prefix_output}.filtered.vcf)!\nPlease restart this script with different parameter values (-p and/or -c)."
+    [ $(wc -l < "${prefix_output}.filtered.vcf") -lt 10000 ] && print_help_and_exit 1 "Error: There are too small number of SNP data in a file (${prefix_output}.filtered.vcf)!\nPlease restart this script with different parameter values (-p and/or -c)."
 
     # Generate sequences from SNP data
     "${RSCRIPT}" --vanilla "${SCRIPTS_DIR}/generate_snp_sequence.R" -v "${prefix_output}.filtered.vcf" -l "${ld_threshold}" -m "${maf_threshold}" -M "${missing_rate}" -o "${prefix_output}"
@@ -126,7 +139,7 @@ then
 elif [ ! -z "${hap_file}" ]
 then
     [ ! -e "${hap_file}" ] && print_help_and_exit 1 "HapMap file (${hap_file}) was not found!"
-    [ $(wc -l < "${hap_file}") -lt 50000 ] && print_help_and_exit 1 "HapMap file (${hap_file}) is too small to run this script!"
+    [ $(wc -l < "${hap_file}") -lt 10000 ] && print_help_and_exit 1 "HapMap file (${hap_file}) is too small to run this script!"
 
     # Remove HapMap data which have many no genotype data
     echo "Start to remove low quality data."
@@ -139,7 +152,35 @@ then
     echo
 
     # 
-    [ $(wc -l < "${prefix_output}.filtered.hapmap") -lt 50000 ] && print_help_and_exit 1 "Error: There are too small number of SNP data in a file (${prefix_output}.filtered.hapmap)!\nPlease restart this script with different parameter values (-p)."
+    [ $(wc -l < "${prefix_output}.filtered.hapmap") -lt 10000 ] && print_help_and_exit 1 "Error: There are too small number of SNP data in a file (${prefix_output}.filtered.hapmap)!\nPlease restart this script with different parameter values (-p)."
+
+    # Generate sequences from SNP data
+    "${RSCRIPT}" --vanilla "${SCRIPTS_DIR}/generate_snp_sequence.R" -H "${prefix_output}.filtered.hapmap" -l "${ld_threshold}" -m "${maf_threshold}" -M "${missing_rate}" -o "${prefix_output}"
+    [ $? != 0 ] && exit 1
+elif [ ! -z "${smp_file}" ]
+then
+    [ ! -e "${smp_file}" ] && print_help_and_exit 1 "Simple SNP file (${smp_file}) was not found!"
+    [ $(wc -l < "${smp_file}") -lt 10000 ] && print_help_and_exit 1 "Simple data file (${smp_file}) is too small to run this script!"
+
+
+    # Convert Simple SNP data file to HapMap file
+    echo "Start to convert the simple SNP file to a HapMap file."
+
+    "${PYTHON}" "${SCRIPTS_DIR}/convert_simple_to_hapmap.py" "${smp_file}" > "${prefix_output}.hapmap"
+    [ $? != 0 ] && print_help_and_exit 1 "Error: The simple SNP file could not be converted to a HapMap file.\nPlease check the file and restart this script."
+
+    # Remove HapMap data which have many no genotype data
+    echo "Start to remove low quality data."
+
+    "${PYTHON}" "${SCRIPTS_DIR}/remove_no_genotype_data.py" "${prefix_output}.hapmap" ${max_plcs_pnss} > "${prefix_output}.filtered.hapmap"
+    [ $? != 0 ] && exit 1
+
+    # Determine and show the number of removed SNP data
+    echo -e "\n$[$(wc -l < "${prefix_output}.hapmap") - $(wc -l < "${prefix_output}.filtered.hapmap")] low quality lines were removed"
+    echo
+
+    # 
+    [ $(wc -l < "${prefix_output}.filtered.hapmap") -lt 10000 ] && print_help_and_exit 1 "Error: There are too small number of SNP data in a file (${prefix_output}.filtered.hapmap)!\nPlease restart this script with different parameter values (-p)."
 
     # Generate sequences from SNP data
     "${RSCRIPT}" --vanilla "${SCRIPTS_DIR}/generate_snp_sequence.R" -H "${prefix_output}.filtered.hapmap" -l "${ld_threshold}" -m "${maf_threshold}" -M "${missing_rate}" -o "${prefix_output}"
@@ -152,7 +193,7 @@ then
     "${RSCRIPT}" --vanilla "${SCRIPTS_DIR}/generate_snp_sequence.R" -d "${gds_file}" -l "${ld_threshold}" -m "${maf_threshold}" -M "${missing_rate}" -o "${prefix_output}"
     [ $? != 0 ] && exit 1
 else
-    print_help_and_exit 1 "Data file was not found!"
+    print_help_and_exit 1 "SNP data file was not found!"
 fi
 
 
