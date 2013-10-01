@@ -8,7 +8,7 @@ def help(error_no):
     print "Version: 10012013"
     print
     print "Usage:"
-    print "    %s VCF_file Maximum_%%_of_LCS_number Minimum_depth_of_coverage" % os.path.basename(sys.argv[0])
+    print "    %s VCF_file Minimum_depth_of_coverage Maximum_%%_of_LCS_number" % os.path.basename(sys.argv[0])
     print
     print "Acronyms:"
     print "    LCS: Low Coverage Sample"
@@ -17,8 +17,8 @@ def help(error_no):
 if len(sys.argv) != 4: help(1)
 
 vcf_file = sys.argv[1]
-max_lcs_percent = float(sys.argv[2])
-min_depth = int(sys.argv[3])
+min_depth = int(sys.argv[2])
+max_lcs_percent = float(sys.argv[3])
 
 if not os.path.exists(vcf_file):
     print >> sys.stderr, "VCF file (%s) was not found!" % vcf_file
