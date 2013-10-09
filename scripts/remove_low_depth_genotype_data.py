@@ -5,7 +5,7 @@ import os.path
 def help(error_no):
     print "Remove VCF data which have many low depth of coverage samples"
     print
-    print "Version: 10012013"
+    print "Version: 10092013"
     print
     print "Usage:"
     print "    %s VCF_file Minimum_depth_of_coverage Maximum_%%_of_LCS_number" % os.path.basename(sys.argv[0])
@@ -27,6 +27,7 @@ if not os.path.exists(vcf_file):
 num_wrong_chr_id = 0
 num_no_dp_data = 0
 num_pass_wo_dp_test = 0
+num_missing_data = 0
 for vcf_line in open(vcf_file, "r"):
     if vcf_line[0] == "#":
         sys.stdout.write(vcf_line)
@@ -50,19 +51,21 @@ for vcf_line in open(vcf_file, "r"):
             dp_col_no = -1
             num_no_dp_data += 1
 
+        try:
+            gt_col_no = format_col.index('GT')
+        except ValueError:
+            print >> sys.stderr, "\nWarning: CHROM: %s, POS: %s did not have genotype data." % tuple(vcf_data[:2])
+            continue    
+
         num_low_depth_sample = 0
         for genotype in vcf_data[9:]: # In order to increase processing speed, several 'if' and 'continue' statements were used in this loop.
-            if genotype == ".":
-                num_low_depth_sample += 1
-                continue
-
             genotype_col = genotype.split(':')
-            if len(genotype_col) != format_col_len:
-                num_low_depth_sample += 1
-                continue
+
+            if genotype[0] == "." or genotype_col[gt_col_no][0] == ".": # To check both "./." for a diploid genotype and "." for haploid genotype
+                num_low_depth_sample += 1 # Missed genotype data is counted as a low depth data
 
             if dp_col_no > 0:
-                if genotype_col[dp_col_no] < min_depth:
+                if int(genotype_col[dp_col_no]) < min_depth:
                     num_low_depth_sample += 1
             else:
                 num_pass_wo_dp_test += 1
