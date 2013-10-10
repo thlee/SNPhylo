@@ -3,31 +3,31 @@ VERSION="08232013"
 
 # Declare functions
 print_help_and_exit () {
-    echo -e "Determine phylogenetic tree based on SNP data with a VCF, a HapMap, a Simple SNP or a GDS file"
-    echo
-    echo -e "Version: ${VERSION}"
-    echo
-    echo -e "Usage:"
-    echo -e "\t$(basename $0) -v VCF_file [-p Maximum_PLCS (5)] [-c Minimum_depth_of_coverage (5)]|-H HapMap_file [-p Maximum_PNSS (5)]|-s Simple_SNP_file [-p Maximum_PNSS (5)]|-d GDS_file [-l LD_threshold (0.1)] [-m MAF_threshold (0.1)] [-M Missing_rate (0.1)] [-o Outgroup_sample_name] [-P Prefix_of_output_files (snphylo.output)] [-h]"
-    echo
-    echo -e "Options:"
-    echo -e "\t-h: Show help and exit"
-    echo
-    echo -e "Acronyms:"
-    echo -e "\tPLCS: The percent of Low Coverage Sample"
-    echo -e "\tPNSS: The percent of Sample which has no SNP information"
-    echo -e "\tLD: Linkage Disequilibrium"
-    echo -e "\tMAF: Minor Allele Frequency"
-    echo
-    echo -e "Simple SNP File Format:"
-    echo -e "\t#Chrom\tPos\tSampleID1\tSampleID2\tSampleID3\t..."
-    echo -e "\t1\t1000\tA\tA\tT\t..."
-    echo -e "\t1\t1002\tG\tC\tG\t..."
-    echo -e "\t..."
-    echo -e "\t2\t2000\tG\tC\tG\t..."
-    echo -e "\t2\t2002\tA\tA\tT\t..."
-    echo -e "\t..."
-    [ -n "$2" ] && echo -e "\n$2"
+    echo -e "Determine phylogenetic tree based on SNP data with a VCF, a HapMap, a Simple SNP or a GDS file" 1>&2
+    echo 1>&2
+    echo -e "Version: ${VERSION}" 1>&2
+    echo 1>&2
+    echo -e "Usage:" 1>&2
+    echo -e "\t$(basename $0) -v VCF_file [-p Maximum_PLCS (5)] [-c Minimum_depth_of_coverage (5)]|-H HapMap_file [-p Maximum_PNSS (5)]|-s Simple_SNP_file [-p Maximum_PNSS (5)]|-d GDS_file [-l LD_threshold (0.1)] [-m MAF_threshold (0.1)] [-M Missing_rate (0.1)] [-o Outgroup_sample_name] [-P Prefix_of_output_files (snphylo.output)] [-h]" 1>&2
+    echo 1>&2
+    echo -e "Options:" 1>&2
+    echo -e "\t-h: Show help and exit" 1>&2
+    echo 1>&2
+    echo -e "Acronyms:" 1>&2
+    echo -e "\tPLCS: The percent of Low Coverage Sample" 1>&2
+    echo -e "\tPNSS: The percent of Sample which has no SNP information" 1>&2
+    echo -e "\tLD: Linkage Disequilibrium" 1>&2
+    echo -e "\tMAF: Minor Allele Frequency" 1>&2
+    echo 1>&2
+    echo -e "Simple SNP File Format:" 1>&2
+    echo -e "\t#Chrom\tPos\tSampleID1\tSampleID2\tSampleID3\t..." 1>&2
+    echo -e "\t1\t1000\tA\tA\tT\t..." 1>&2
+    echo -e "\t1\t1002\tG\tC\tG\t..." 1>&2
+    echo -e "\t..." 1>&2
+    echo -e "\t2\t2000\tG\tC\tG\t..." 1>&2
+    echo -e "\t2\t2002\tA\tA\tT\t..." 1>&2
+    echo -e "\t..." 1>&2
+    [ -n "$2" ] && echo -e "\n$2" 1>&2
     exit $1
 }
 
@@ -202,6 +202,9 @@ seq_len=$(sed -n '2p' ${prefix_output}.fasta | wc -c)
 if [ ${seq_len} -lt 500 ]
 then
     print_help_and_exit 1 "Error: The length of sequence is too short (< 500 bp) to construct a tree!\nPlease restart this script with different parameter values (-l, -m and/or -M)."
+elif [ ${seq_len} -lt 2000 ]
+then
+    echo -e "Warning: The length of sequence is too short (< 2000 bp) to construct a good tree!\nPlease consider to restart this script with different parameter values (-l, -m and/or -M)." 1>&2
 elif [ ${seq_len} -gt 50000 ]
 then
     print_help_and_exit 1 "Error: The length of sequence is too long (> 50000 bp) to construct a tree!\nPlease restart this script with different parameter values (-l, -m and/or -M)."
