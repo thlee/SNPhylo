@@ -1,5 +1,5 @@
 
-VERSION="08232013"
+VERSION="10102013"
 
 # Declare functions
 print_help_and_exit () {
