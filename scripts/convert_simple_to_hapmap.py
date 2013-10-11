@@ -6,21 +6,21 @@ from itertools import groupby, chain
 from operator import itemgetter
 
 def help(error_no):
-    print "Convert simple SNP data file to HapMap format"
-    print
-    print "Version: 08232013"
-    print
-    print "Usage:"
-    print "    %s Simple_SNP_data_file" % os.path.basename(sys.argv[0])
-    print
-    print "Simple SNP Data File Format:"
-    print "#Chrom\tPos\tRef\tSample_ID1\tSample_ID2\t..."
-    print "1\t1000\tA\tA\tT\t..."
-    print "1\t1002\tG\tC\tG\t..."
-    print "..."
-    print "2\t2000\tG\tC\tG\t..."
-    print "2\t2002\tA\tA\tT\t..."
-    print "..."
+    print >> sys.stderr, "Convert simple SNP data file to HapMap format"
+    print >> sys.stderr
+    print >> sys.stderr, "Version: 10112013"
+    print >> sys.stderr
+    print >> sys.stderr, "Usage:"
+    print >> sys.stderr, "    %s Simple_SNP_data_file" % os.path.basename(sys.argv[0])
+    print >> sys.stderr
+    print >> sys.stderr, "Simple SNP Data File Format:"
+    print >> sys.stderr, "#Chrom\tPos\tRef\tSample_ID1\tSample_ID2\t..."
+    print >> sys.stderr, "1\t1000\tA\tA\tT\t..."
+    print >> sys.stderr, "1\t1002\tG\tC\tG\t..."
+    print >> sys.stderr, "..."
+    print >> sys.stderr, "2\t2000\tG\tC\tG\t..."
+    print >> sys.stderr, "2\t2002\tA\tA\tT\t..."
+    print >> sys.stderr, "..."
     sys.exit(error_no)
 
 if len(sys.argv) != 2: help(1)
@@ -49,7 +49,7 @@ def determine_alleles(simple_data):
 rs_num = 1
 for line in open(simple_file, "r"):
     simple_data = line.strip().split()
-    if simple_data[0] == "#Chrom":
+    if simple_data[0].upper() == "#CHROM":
         print "rs#\talleles\tchrom\tpos\tstrand\tassembly#\tcenter\tprotLSID\tassayLSID\tpanelLSID\tQCcode\t" + \
             "\t".join(simple_data[2:])
         continue
