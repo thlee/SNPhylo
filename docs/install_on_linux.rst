@@ -39,14 +39,13 @@ On Fedora 18 (64 bit)
 
     $ ln -sf "${SNPHYLO_HOME}/phylip-3.695" "${SNPHYLO_HOME}/phylip"
 
-    $ pusd "${SNPHYLO_HOME}/phylip/src"
+    $ pushd "${SNPHYLO_HOME}/phylip/src"
 
     $ cp Makefile.unx Makefile
     $ make install
     ...... (Compiling and installing the Phylip programs)
 
     $ popd
-
 
 5. Install the SNPhylo ::
 
@@ -74,7 +73,7 @@ On Fedora 18 (64 bit)
     dnaml is not found. Is the program already installed? [y/N] y
     Please enter the path of dnaml program (ex: /home/foo/bin/dnaml): /home/foo/snphylo/phylip/exe/dnaml
 
-    At least one R library (gdsfmt, SNPRelate or getopt) to run this pipeline is not found. Is the program already installed? [y/N] n
+    At least one R library (gdsfmt, phangorn, SNPRelate or getopt) to run this pipeline is not found. Is the program already installed? [y/N] n
 
     Do you want to install the libraries by this script? [y/N] y
 
@@ -94,10 +93,9 @@ On Fedora 18 (64 bit)
 
     ...... (Verbose Messages)
 
-    The tree file (snphylo.output.dnaml.tree) is successfully generated!
-    Now, you can see the tree by a viewer program such as FigTree (http://tree.bio.ed.ac.uk/software/figtree/).
+    The tree file (snphylo.output.xx.tree) and the image (snphylo.output.xx.png) are successfully generated!
+    Now, you can see the tree by a program such as MEGA4 (http://www.megasoftware.net/mega4/mega.html), FigTree (http://tree.bio.ed.ac.uk/software/figtree/) and Newick utilities (http://cegg.unige.ch/newick_utils).
     Good Luck!
-
 
 On Ubuntu 12.04.2 LTS (64 bit)
 ------------------------------
@@ -144,7 +142,6 @@ On Ubuntu 12.04.2 LTS (64 bit)
 
     $ popd
 
-
 5. Install the SNPhylo ::
 
     $ curl -O http://chibba.pgml.uga.edu/snphylo/snphylo.tar.gz
@@ -171,7 +168,7 @@ On Ubuntu 12.04.2 LTS (64 bit)
     dnaml is not found. Is the program already installed? [y/N] y
     Please enter the path of dnaml program (ex: /home/foo/bin/dnaml): /home/foo/snphylo/phylip/exe/dnaml
 
-    At least one R library (gdsfmt, SNPRelate or getopt) to run this pipeline is not found. Is the program already installed? [y/N] n
+    At least one R library (gdsfmt, phangorn, SNPRelate or getopt) to run this pipeline is not found. Is the program already installed? [y/N] n
 
     Do you want to install the libraries by this script? [y/N] y
 
@@ -191,6 +188,6 @@ On Ubuntu 12.04.2 LTS (64 bit)
 
     ...... (Verbose Messages)
 
-    The tree file (snphylo.output.dnaml.tree) is successfully generated!
-    Now, you can see the tree by a viewer program such as FigTree (http://tree.bio.ed.ac.uk/software/figtree/).
+    The tree file (snphylo.output.xx.tree) and the image (snphylo.output.xx.png) are successfully generated!
+    Now, you can see the tree by a program such as MEGA4 (http://www.megasoftware.net/mega4/mega.html), FigTree (http://tree.bio.ed.ac.uk/software/figtree/) and Newick utilities (http://cegg.unige.ch/newick_utils).
     Good Luck!

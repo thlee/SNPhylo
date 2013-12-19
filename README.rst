@@ -9,8 +9,8 @@ Phylogenetic tree is a good tool to infer evolutionary relationships among vario
 Features
 --------
 1. Tree construction based on genome wide SNPs. Conventional tree construction is based on hand full of genes with certain properties such single copy gene, ribosomal RNA gene, Internal transcribed spacer sequences (ITS). SNPhylo builds tree with genome wide information, thus, it is more accurate
-2. Reduce SNP redundancy by linkage disequilibrium (LD).SNPs in a same LD block provides redundant lineage information. SNPhylo keeps only one informative SNP in a LD block. It greatly decreases running time without losing informative sites.
-3. Tree construction process is highly automated. SNPhylo takes most common SNP/genotype format (vcf/hapmap) as input and produces maximum likelihood tree with only one command!
+2. Reduce SNP redundancy by linkage disequilibrium (LD). SNPs in a same LD block provides redundant lineage information. SNPhylo keeps only one informative SNP in a LD block. It greatly decreases running time without losing informative sites.
+3. Tree construction process is highly automated. SNPhylo takes most common SNP/genotype format (vcf/hapmap) as well as a simple SNP data format as input and produces maximum likelihood tree with only one command!
 
 Homepage
 --------

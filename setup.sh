@@ -26,7 +26,7 @@ function ask_r_lib_dir {
     do
         local r_lib_dir=""
         echo 1>&2
-        read -p "At least one R library (gdsfmt, SNPRelate or getopt) to run this pipeline is not found. Is the program already installed? [y/N] " -n 1
+        read -p "At least one R library (gdsfmt, phangorn, SNPRelate or getopt) to run this pipeline is not found. Is the program already installed? [y/N] " -n 1
         if [[ ${REPLY} =~ ^[Yy]$ ]]
         then
             echo 1>&2
@@ -71,7 +71,7 @@ function check_R_library {
     if [ -z "${r_lib_dir}" ]
     then
         "${R_BASE_DIR}/R" --vanilla --slave <<R_SCRIPT
-if (all(c("gdsfmt", "SNPRelate", "getopt") %in% rownames(installed.packages()))) {
+if (all(c("gdsfmt", "SNPRelate", "phangorn", "getopt") %in% rownames(installed.packages()))) {
     quit(save="no", status=0)
 } else {
     quit(save="no", status=1)
@@ -79,7 +79,7 @@ if (all(c("gdsfmt", "SNPRelate", "getopt") %in% rownames(installed.packages())))
 R_SCRIPT
     else
         "${R_BASE_DIR}/R" --vanilla --slave <<R_SCRIPT
-if (all(c("gdsfmt", "SNPRelate", "getopt") %in% rownames(installed.packages(lib.loc="${r_lib_dir}")))) {
+if (all(c("gdsfmt", "SNPRelate", "phangorn", "getopt") %in% rownames(installed.packages(lib.loc="${r_lib_dir}")))) {
     quit(save="no", status=0)
 } else {
     quit(save="no", status=1)
@@ -113,7 +113,7 @@ do
         exit 1
     else
         echo "${var_name}='${program_path}'" >> "${BASE_DIR}/snphylo.cfg"
-        [ "${var_name}" == "RSCRIPT" ] && R_BASE_DIR="${program_path%/Rscript}"
+        [ "${var_name}" == "R" ] && R_BASE_DIR="${program_path%/R}"
     fi
 done
 
@@ -130,6 +130,7 @@ then
             [ ! -e "${BASE_DIR}/R_LIBS/" ] && mkdir -p "${BASE_DIR}/R_LIBS/"
             "${R_BASE_DIR}/R" --vanilla --slave <<R_SCRIPT
 install.packages("SNPRelate", lib="${BASE_DIR}/R_LIBS/", repos="http://cran.r-project.org", type="source")
+install.packages("phangorn", lib="${BASE_DIR}/R_LIBS/", repos="http://cran.r-project.org", type="source")
 install.packages("getopt", lib="${BASE_DIR}/R_LIBS/", repos="http://cran.r-project.org", type="source")
 R_SCRIPT
             if [ $(check_R_library "${BASE_DIR}/R_LIBS/") -eq 1 -o $? -ne 0 ]
@@ -146,7 +147,7 @@ R_SCRIPT
 
     if [ -z "${r_lib_dir}" ]
     then
-        echo -e "\nYou can download the libraries at http://cran.r-project.org/web/packages/SNPRelate/index.html.\nPlease, install the libraries and restart this script."
+        echo -e "\nYou can download the libraries at http://cran.r-project.org/web/packages/.\nPlease, download and install the libraries and restart this script."
         rm -f "${BASE_DIR}/snphylo.cfg"
         exit 1
     else

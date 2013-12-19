@@ -8,8 +8,7 @@ On Lion (10.7.5; 64 bit)
 1. Install R and related packages ::
 
     R for Mac can be download at http://cran.rstudio.com/
-    After R is installed, three related R-libraries can be installed following online installation
-    at http://chibba.pgml.uga.edu/snphylo/.
+    After R is installed, three related R-libraries can be installed following online installation at http://chibba.pgml.uga.edu/snphylo/.
 
 2. Make a SNPhylo directory in your home directory ::
 
@@ -41,7 +40,7 @@ On Lion (10.7.5; 64 bit)
 
     $ ln -sf "${SNPHYLO_HOME}/phylip-3.695" "${SNPHYLO_HOME}/phylip"
 
-    $ pusd "${SNPHYLO_HOME}/phylip/src"
+    $ pushd "${SNPHYLO_HOME}/phylip/src"
 
     $ cp Makefile.osx Makefile
     $ make install
@@ -90,6 +89,6 @@ On Lion (10.7.5; 64 bit)
 
     ...... (Verbose Messages)
 
-    The tree file (snphylo.output.dnaml.tree) is successfully generated!
-    Now, you can see the tree by a viewer program such as FigTree (http://tree.bio.ed.ac.uk/software/figtree/).
+    The tree file (snphylo.output.xx.tree) and the image (snphylo.output.xx.png) are successfully generated!
+    Now, you can see the tree by a program such as MEGA4 (http://www.megasoftware.net/mega4/mega.html), FigTree (http://tree.bio.ed.ac.uk/software/figtree/) and Newick utilities (http://cegg.unige.ch/newick_utils).
     Good Luck!

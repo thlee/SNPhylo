@@ -8,9 +8,10 @@ print_help_and_exit () {
     echo -e "Version: ${VERSION}" 1>&2
     echo 1>&2
     echo -e "Usage:" 1>&2
-    echo -e "\t$(basename $0) -v VCF_file [-p Maximum_PLCS (5)] [-c Minimum_depth_of_coverage (5)]|-H HapMap_file [-p Maximum_PNSS (5)]|-s Simple_SNP_file [-p Maximum_PNSS (5)]|-d GDS_file [-l LD_threshold (0.1)] [-m MAF_threshold (0.1)] [-M Missing_rate (0.1)] [-o Outgroup_sample_name] [-P Prefix_of_output_files (snphylo.output)] [-h]" 1>&2
+    echo -e "\t$(basename $0) -v VCF_file [-p Maximum_PLCS (5)] [-c Minimum_depth_of_coverage (5)]|-H HapMap_file [-p Maximum_PNSS (5)]|-s Simple_SNP_file [-p Maximum_PNSS (5)]|-d GDS_file [-l LD_threshold (0.1)] [-m MAF_threshold (0.1)] [-M Missing_rate (0.1)] [-o Outgroup_sample_name] [-P Prefix_of_output_files (snphylo.output)] [-b [-B The_number_of_bootstrap_samples (100)]] [-h]" 1>&2
     echo 1>&2
     echo -e "Options:" 1>&2
+    echo -e "\t-b: Performs (non-parametric) bootstrap analysis and generate a tree" 1>&2
     echo -e "\t-h: Show help and exit" 1>&2
     echo 1>&2
     echo -e "Acronyms:" 1>&2
@@ -63,9 +64,11 @@ maf_threshold=0.1
 missing_rate=0.1
 prefix_output="snphylo.output"
 out_sample_id=""
+bootstrap_analysis=0
+num_bs_sample=100
 
 # Parse positional parameters
-while getopts "v:H:d:c:p:l:m:M:P:o:s:h" OPT
+while getopts "v:H:d:c:p:l:m:M:P:o:s:bB:h" OPT
 do
     case "${OPT}" in
         'v')
@@ -101,6 +104,12 @@ do
         'o')
             out_sample_id="${OPTARG}"
             ;;
+        'B')
+            num_bs_sample="${OPTARG}"
+            ;;
+        'b')
+            bootstrap_analysis=1
+            ;;
         'h')
             print_help_and_exit 0
             ;;
@@ -134,7 +143,7 @@ then
     [ $(wc -l < "${prefix_output}.filtered.vcf") -lt 10000 ] && print_help_and_exit 1 "Error: There are too small number of SNP data in a file (${prefix_output}.filtered.vcf)!\nPlease restart this script with different parameter values (-p and/or -c)."
 
     # Generate sequences from SNP data
-    "${RSCRIPT}" --vanilla "${SCRIPTS_DIR}/generate_snp_sequence.R" -v "${prefix_output}.filtered.vcf" -l "${ld_threshold}" -m "${maf_threshold}" -M "${missing_rate}" -o "${prefix_output}"
+    "${R}" --slave --vanilla --file="${SCRIPTS_DIR}/generate_snp_sequence.R" --args -v "${prefix_output}.filtered.vcf" -l "${ld_threshold}" -m "${maf_threshold}" -M "${missing_rate}" -o "${prefix_output}"
     [ $? != 0 ] && exit 1
 elif [ ! -z "${hap_file}" ]
 then
@@ -155,7 +164,7 @@ then
     [ $(wc -l < "${prefix_output}.filtered.hapmap") -lt 10000 ] && print_help_and_exit 1 "Error: There are too small number of SNP data in a file (${prefix_output}.filtered.hapmap)!\nPlease restart this script with different parameter values (-p)."
 
     # Generate sequences from SNP data
-    "${RSCRIPT}" --vanilla "${SCRIPTS_DIR}/generate_snp_sequence.R" -H "${prefix_output}.filtered.hapmap" -l "${ld_threshold}" -m "${maf_threshold}" -M "${missing_rate}" -o "${prefix_output}"
+    "${R}" --slave --vanilla --file="${SCRIPTS_DIR}/generate_snp_sequence.R" --args -H "${prefix_output}.filtered.hapmap" -l "${ld_threshold}" -m "${maf_threshold}" -M "${missing_rate}" -o "${prefix_output}"
     [ $? != 0 ] && exit 1
 elif [ ! -z "${smp_file}" ]
 then
@@ -183,14 +192,14 @@ then
     [ $(wc -l < "${prefix_output}.filtered.hapmap") -lt 10000 ] && print_help_and_exit 1 "Error: There are too small number of SNP data in a file (${prefix_output}.filtered.hapmap)!\nPlease restart this script with different parameter values (-p)."
 
     # Generate sequences from SNP data
-    "${RSCRIPT}" --vanilla "${SCRIPTS_DIR}/generate_snp_sequence.R" -H "${prefix_output}.filtered.hapmap" -l "${ld_threshold}" -m "${maf_threshold}" -M "${missing_rate}" -o "${prefix_output}"
+    "${R}" --slave --vanilla --file="${SCRIPTS_DIR}/generate_snp_sequence.R" --args -H "${prefix_output}.filtered.hapmap" -l "${ld_threshold}" -m "${maf_threshold}" -M "${missing_rate}" -o "${prefix_output}"
     [ $? != 0 ] && exit 1
 elif [ ! -z "${gds_file}" ]
 then
     [ ! -e "${gds_file}" ] && print_help_and_exit 1 "GDS file (${gds_file}) was not found!"
 
     # Generate sequences from SNP data
-    "${RSCRIPT}" --vanilla "${SCRIPTS_DIR}/generate_snp_sequence.R" -d "${gds_file}" -l "${ld_threshold}" -m "${maf_threshold}" -M "${missing_rate}" -o "${prefix_output}"
+    "${R}" --slave --vanilla --file="${SCRIPTS_DIR}/generate_snp_sequence.R" --args -d "${gds_file}" -l "${ld_threshold}" -m "${maf_threshold}" -M "${missing_rate}" -o "${prefix_output}"
     [ $? != 0 ] && exit 1
 else
     print_help_and_exit 1 "SNP data file was not found!"
@@ -236,11 +245,23 @@ else
         echo -e "o\n${out_sample_no}\ny\n" | "${DNAML}"; [ $? != 0 ] && exit 1
     fi
 fi
-mv outfile ${prefix_output}.dnaml.txt
-mv outtree ${prefix_output}.dnaml.tree
+mv outfile "${prefix_output}.ml.txt"
+mv outtree "${prefix_output}.ml.tree"
 
 rm -f infile
 
-echo "The tree file (${prefix_output}.dnaml.tree) is successfully generated!"
-echo "Now, you can see the tree by a viewer program such as FigTree (http://tree.bio.ed.ac.uk/software/figtree/)."
+if [ -e ${prefix_output}.ml.tree ]
+then
+    "${R}" --slave --vanilla --file="${SCRIPTS_DIR}/draw_unrooted_tree.R" --args -i "${prefix_output}.ml.tree" -o "${prefix_output}"
+    [ $? != 0 ] && exit 1
+fi
+
+if [ ${bootstrap_analysis} == 1 ]
+then
+    "${R}" --slave --vanilla --file="${SCRIPTS_DIR}/determine_bs_tree.R" --args -i "${prefix_output}.ml.tree" -o "${prefix_output}" -p "${prefix_output}.phylip.txt" -n ${num_bs_sample}
+    [ $? != 0 ] && exit 1
+fi
+
+echo "The tree file (${prefix_output}.xx.tree) and the image (${prefix_output}.xx.png) are successfully generated!"
+echo "Now, you can see the tree by a program such as MEGA4 (http://www.megasoftware.net/mega4/mega.html), FigTree (http://tree.bio.ed.ac.uk/software/figtree/) and Newick utilities (http://cegg.unige.ch/newick_utils)."
 echo "Good Luck!"
