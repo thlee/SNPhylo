@@ -5,17 +5,19 @@ Installing SNPhylo on Linux
 On Fedora 18 (64 bit)
 ---------------------
 
-1. Install the R (if R is not installed; as root) ::
-
+1. Install the R and the libraries to insall R packages (if they are not installed; as root) ::
     $ yum -y install R
     ...... (Installing the R)
+
+    $ yum -y groupinstall "X Software Development" 
+    ...... (Installing the libraries to install R packages)
 
 2. Make a SNPhylo directory in your home directory ::
 
     $ echo ${HOME} # Determine your home directory
     /home/foo (This will be different on your system)
 
-    $ SNPHYLO_HOME="/home/foo/snphylo"
+    $ SNPHYLO_HOME="/home/foo/snphylo" # "/home/foo" should be changed to your home directory determined above
 
     $ mkdir -p "${SNPHYLO_HOME}/bin"
 
@@ -73,11 +75,11 @@ On Fedora 18 (64 bit)
     dnaml is not found. Is the program already installed? [y/N] y
     Please enter the path of dnaml program (ex: /home/foo/bin/dnaml): /home/foo/snphylo/phylip/exe/dnaml
 
-    At least one R library (gdsfmt, phangorn, SNPRelate or getopt) to run this pipeline is not found. Is the program already installed? [y/N] n
+    At least one R package (gdsfmt, phangorn, SNPRelate or getopt) to run this pipeline is not found. Is the program already installed? [y/N] n
 
-    Do you want to install the libraries by this script? [y/N] y
+    Do you want to install the packages by this script? [y/N] y
 
-    ...... (Installing R libraries)
+    ...... (Installing R packages)
 
     SNPHYLO is successfully installed!!!
 
@@ -97,20 +99,20 @@ On Fedora 18 (64 bit)
     Now, you can see the tree by a program such as MEGA4 (http://www.megasoftware.net/mega4/mega.html), FigTree (http://tree.bio.ed.ac.uk/software/figtree/) and Newick utilities (http://cegg.unige.ch/newick_utils).
     Good Luck!
 
-On Ubuntu 12.04.2 LTS (64 bit)
+On Ubuntu 13.10 (64 bit)
 ------------------------------
 
 1. Install the R (if R is not installed; as root) ::
 
-    $ apt-get -y install r-base-dev r-cran-getopt
-    ...... (Installing the R and the getopt library)
+    $ apt-get -y install r-base-dev r-cran-getopt r-cran-rgl
+    ...... (Installing the R and related packages)
 
 2. Make a SNPhylo directory in your home directory ::
 
     $ echo ${HOME} # Determine your home directory
     /home/foo (This will be different on your system)
 
-    $ SNPHYLO_HOME="/home/foo/snphylo"
+    $ SNPHYLO_HOME="/home/foo/snphylo" # "/home/foo" should be changed to your home directory determined above
 
     $ mkdir -p "${SNPHYLO_HOME}/bin"
 
@@ -168,11 +170,11 @@ On Ubuntu 12.04.2 LTS (64 bit)
     dnaml is not found. Is the program already installed? [y/N] y
     Please enter the path of dnaml program (ex: /home/foo/bin/dnaml): /home/foo/snphylo/phylip/exe/dnaml
 
-    At least one R library (gdsfmt, phangorn, SNPRelate or getopt) to run this pipeline is not found. Is the program already installed? [y/N] n
+    At least one R package (gdsfmt, phangorn, SNPRelate or getopt) to run this pipeline is not found. Is the program already installed? [y/N] n
 
-    Do you want to install the libraries by this script? [y/N] y
+    Do you want to install the packages by this script? [y/N] y
 
-    ...... (Installing R libraries)
+    ...... (Installing R packages)
 
     SNPHYLO is successfully installed!!!
 

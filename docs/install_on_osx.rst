@@ -8,14 +8,14 @@ On Lion (10.7.5; 64 bit)
 1. Install R and related packages ::
 
     R for Mac can be download at http://cran.rstudio.com/
-    After R is installed, three related R-libraries can be installed following online installation at http://chibba.pgml.uga.edu/snphylo/.
+    After R is installed, three related R packages can be installed following online installation at http://chibba.pgml.uga.edu/snphylo/.
 
 2. Make a SNPhylo directory in your home directory ::
 
     $ echo ${HOME} # Determine your home directory
     /home/foo (This will be different on your system)
 
-    $ SNPHYLO_HOME="/home/foo/snphylo"
+    $ SNPHYLO_HOME="/home/foo/snphylo" # "/home/foo" should be changed to your home directory determined above
 
     $ mkdir -p "${SNPHYLO_HOME}/bin"
 
