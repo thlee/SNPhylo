@@ -136,7 +136,7 @@ On Ubuntu 13.10 (64 bit)
 
     $ ln -sf "${SNPHYLO_HOME}/phylip-3.695" "${SNPHYLO_HOME}/phylip"
 
-    $ pusd "${SNPHYLO_HOME}/phylip/src"
+    $ pushd "${SNPHYLO_HOME}/phylip/src"
 
     $ cp Makefile.unx Makefile
     $ make install
