@@ -63,12 +63,12 @@ for vcf_line in open(vcf_file, "r"):
 
             if genotype[0] == "." or genotype_col[gt_col_no][0] == ".": # To check both "./." for a diploid genotype and "." for haploid genotype
                 num_low_depth_sample += 1 # Missed genotype data is counted as a low depth data
-
-            if dp_col_no > 0:
-                if int(genotype_col[dp_col_no]) < min_depth:
-                    num_low_depth_sample += 1
             else:
-                num_pass_wo_dp_test += 1
+                if dp_col_no > 0:
+                    if int(genotype_col[dp_col_no]) < min_depth:
+                        num_low_depth_sample += 1
+                else:
+                    num_pass_wo_dp_test += 1
 
         if num_low_depth_sample < max_num_low_depth_sample:
             sys.stdout.write(vcf_line)
