@@ -189,7 +189,8 @@ gds2fasta <- function (gdsobj, pos.fn, snp.id = NULL, verbose = FALSE) {
     rep.allele <- do.call(rbind, strsplit(read.gdsn(index.gdsn(gdsobj, "snp.allele"))[snp.idx], "/", fixed = TRUE))
     sample.id <- read.gdsn(index.gdsn(gdsobj, "sample.id"))
 
-#   cat(paste(read.gdsn(index.gdsn(gdsobj, "snp.rs.id"))[snp.idx]))
+    id_file.name <- paste(pos.fn, ".id.txt", sep = "")
+    cat(paste(read.gdsn(index.gdsn(gdsobj, "snp.rs.id"))[snp.idx], collapse = "\n"), "\n", file = id_file.name)
 
     seq.len <- length(snp.idx)
     file.name <- paste(pos.fn, ".fasta", sep = "")
@@ -227,19 +228,20 @@ library(getopt)
 #LD Linkage Disequilibrium
 #MAF Minor Allele Frequency
 h <- function(x) {
-    cat("Usage: Rscript --vanilla generate_snp_sequence.R -v VCF_file|-H HapMap_file|-d GDS_file [-l LD_threshold (0.5)] [-m MAF_threshold (0.05)] [-M Missing_rate (0.05)] [-o Prefix_of_output_files (output)] [-h]\n\n")
+    cat("Usage: Rscript --vanilla generate_snp_sequence.R -v VCF_file|-H HapMap_file|-d GDS_file [-l LD_threshold (0.5)] [-m MAF_threshold (0.05)] [-M Missing_rate (0.05)] [-o Prefix_of_output_files (output)] [-a The_number_of_the_last_autosome (22)] [-h]\n\n")
     quit(save="no", status=x)
 }
 
 opt <- getopt(matrix(c(
-    'help',   'h', 0, "logical",
-    'ld',     'l', 1, "double",
-    'maf',    'm', 1, "double",
-    'miss',   'M', 1, "double",
-    'prefix', 'o', 1, "character",
-    'vcf',    'v', 1, "character",
-    'hapmap', 'H', 1, "character",
-    'gds',    'd', 1, "character"
+    'help',    'h', 0, "logical",
+    'ld',      'l', 1, "double",
+    'maf',     'm', 1, "double",
+    'miss',    'M', 1, "double",
+    'asome',   'a', 1, "integer",
+    'prefix',  'o', 1, "character",
+    'vcf',     'v', 1, "character",
+    'hapmap',  'H', 1, "character",
+    'gds',     'd', 1, "character"
 ), ncol=4, byrow=TRUE));
 
 if (! is.null(opt$help)) { h(0) }
@@ -248,9 +250,12 @@ file.prefix <- ifelse(is.null(opt$prefix), "output", opt$prefix)
 ld.threshold <- ifelse(is.null(opt$ld), 0.5, opt$ld)
 maf.threshold <- ifelse(is.null(opt$maf), 0.05, opt$maf)
 miss.rate <- ifelse(is.null(opt$miss), 0.05, opt$miss)
+last.autosome <- ifelse(is.null(opt$asome), 22, opt$asome)
 
 library(gdsfmt)
 library(SNPRelate)
+
+option = snpgdsOption(autosome.end=last.autosome)
 
 #library(compiler)
 #enableJIT(3)

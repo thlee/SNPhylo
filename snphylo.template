@@ -1,5 +1,4 @@
-
-VERSION="12182013"
+VERSION="04222014"
 
 # Declare functions
 print_help_and_exit () {
@@ -8,10 +7,11 @@ print_help_and_exit () {
     echo -e "Version: ${VERSION}" 1>&2
     echo 1>&2
     echo -e "Usage:" 1>&2
-    echo -e "\t$(basename $0) -v VCF_file [-p Maximum_PLCS (5)] [-c Minimum_depth_of_coverage (5)]|-H HapMap_file [-p Maximum_PNSS (5)]|-s Simple_SNP_file [-p Maximum_PNSS (5)]|-d GDS_file [-l LD_threshold (0.1)] [-m MAF_threshold (0.1)] [-M Missing_rate (0.1)] [-o Outgroup_sample_name] [-P Prefix_of_output_files (snphylo.output)] [-b [-B The_number_of_bootstrap_samples (100)]] [-h]" 1>&2
+    echo -e "\t$(basename $0) -v VCF_file [-p Maximum_PLCS (5)] [-c Minimum_depth_of_coverage (5)]|-H HapMap_file [-p Maximum_PNSS (5)]|-s Simple_SNP_file [-p Maximum_PNSS (5)]|-d GDS_file [-l LD_threshold (0.1)] [-m MAF_threshold (0.1)] [-M Missing_rate (0.1)] [-o Outgroup_sample_name] [-P Prefix_of_output_files (snphylo.output)] [-b [-B The_number_of_bootstrap_samples (100)]] [-a The_number_of_the_last_autosome (22)] [-A] [-h]" 1>&2
     echo 1>&2
     echo -e "Options:" 1>&2
-    echo -e "\t-b: Performs (non-parametric) bootstrap analysis and generate a tree" 1>&2
+    echo -e "\t-A: Perform multiple alignment by MUSCLE" 1>&2
+    echo -e "\t-b: Perform (non-parametric) bootstrap analysis and generate a tree" 1>&2
     echo -e "\t-h: Show help and exit" 1>&2
     echo 1>&2
     echo -e "Acronyms:" 1>&2
@@ -65,10 +65,12 @@ missing_rate=0.1
 prefix_output="snphylo.output"
 out_sample_id=""
 bootstrap_analysis=0
+muscle_analysis=0
 num_bs_sample=100
+num_last_autosome=22
 
 # Parse positional parameters
-while getopts "v:H:d:c:p:l:m:M:P:o:s:bB:h" OPT
+while getopts "v:H:d:c:p:l:m:M:P:o:s:bB:Aa:h" OPT
 do
     case "${OPT}" in
         'v')
@@ -110,6 +112,12 @@ do
         'b')
             bootstrap_analysis=1
             ;;
+        'A')
+            muscle_analysis=1
+            ;;
+        'a')
+            num_last_autosome="${OPTARG}"
+            ;;
         'h')
             print_help_and_exit 0
             ;;
@@ -143,7 +151,7 @@ then
     [ $(wc -l < "${prefix_output}.filtered.vcf") -lt 10000 ] && print_help_and_exit 1 "Error: There are too small number of SNP data in a file (${prefix_output}.filtered.vcf)!\nPlease restart this script with different parameter values (-p and/or -c)."
 
     # Generate sequences from SNP data
-    "${R}" --slave --vanilla --file="${SCRIPTS_DIR}/generate_snp_sequence.R" --args -v "${prefix_output}.filtered.vcf" -l "${ld_threshold}" -m "${maf_threshold}" -M "${missing_rate}" -o "${prefix_output}"
+    "${R}" --slave --vanilla --file="${SCRIPTS_DIR}/generate_snp_sequence.R" --args -v "${prefix_output}.filtered.vcf" -l "${ld_threshold}" -m "${maf_threshold}" -M "${missing_rate}" -o "${prefix_output}" -a "${num_last_autosome}"
     [ $? != 0 ] && exit 1
 elif [ ! -z "${hap_file}" ]
 then
@@ -164,7 +172,7 @@ then
     [ $(wc -l < "${prefix_output}.filtered.hapmap") -lt 10000 ] && print_help_and_exit 1 "Error: There are too small number of SNP data in a file (${prefix_output}.filtered.hapmap)!\nPlease restart this script with different parameter values (-p)."
 
     # Generate sequences from SNP data
-    "${R}" --slave --vanilla --file="${SCRIPTS_DIR}/generate_snp_sequence.R" --args -H "${prefix_output}.filtered.hapmap" -l "${ld_threshold}" -m "${maf_threshold}" -M "${missing_rate}" -o "${prefix_output}"
+    "${R}" --slave --vanilla --file="${SCRIPTS_DIR}/generate_snp_sequence.R" --args -H "${prefix_output}.filtered.hapmap" -l "${ld_threshold}" -m "${maf_threshold}" -M "${missing_rate}" -o "${prefix_output}" -a "${num_last_autosome}"
     [ $? != 0 ] && exit 1
 elif [ ! -z "${smp_file}" ]
 then
@@ -192,14 +200,14 @@ then
     [ $(wc -l < "${prefix_output}.filtered.hapmap") -lt 10000 ] && print_help_and_exit 1 "Error: There are too small number of SNP data in a file (${prefix_output}.filtered.hapmap)!\nPlease restart this script with different parameter values (-p)."
 
     # Generate sequences from SNP data
-    "${R}" --slave --vanilla --file="${SCRIPTS_DIR}/generate_snp_sequence.R" --args -H "${prefix_output}.filtered.hapmap" -l "${ld_threshold}" -m "${maf_threshold}" -M "${missing_rate}" -o "${prefix_output}"
+    "${R}" --slave --vanilla --file="${SCRIPTS_DIR}/generate_snp_sequence.R" --args -H "${prefix_output}.filtered.hapmap" -l "${ld_threshold}" -m "${maf_threshold}" -M "${missing_rate}" -o "${prefix_output}" -a "${num_last_autosome}"
     [ $? != 0 ] && exit 1
 elif [ ! -z "${gds_file}" ]
 then
     [ ! -e "${gds_file}" ] && print_help_and_exit 1 "GDS file (${gds_file}) was not found!"
 
     # Generate sequences from SNP data
-    "${R}" --slave --vanilla --file="${SCRIPTS_DIR}/generate_snp_sequence.R" --args -d "${gds_file}" -l "${ld_threshold}" -m "${maf_threshold}" -M "${missing_rate}" -o "${prefix_output}"
+    "${R}" --slave --vanilla --file="${SCRIPTS_DIR}/generate_snp_sequence.R" --args -d "${gds_file}" -l "${ld_threshold}" -m "${maf_threshold}" -M "${missing_rate}" -o "${prefix_output}" -a "${num_last_autosome}"
     [ $? != 0 ] && exit 1
 else
     print_help_and_exit 1 "SNP data file was not found!"
@@ -220,7 +228,13 @@ then
 fi
 
 #~/programs/clustalw/bin/clustalw2 -TYPE=DNA -ALIGN -OUTPUT=PHYLIP -INFILE=${prefix_output}.seq -OUTFILE=${prefix_output}.phylip
-"${MUSCLE}" -phyi -in ${prefix_output}.fasta -out ${prefix_output}.phylip.txt; [ $? != 0 ] && exit 1
+if [ muscle_analysis -eq 1 ]
+then
+    "${MUSCLE}" -phyi -in "${prefix_output}.fasta" -out "${prefix_output}.phylip.txt"; [ $? != 0 ] && exit 1
+else
+    "${PYTHON}" "${SCRIPTS_DIR}/convert_fasta_to_phylip.py" "${prefix_output}.fasta" > "${prefix_output}.phylip.txt"
+    [ $? != 0 ] && exit 1
+fi
 
 ## Determine a phylogenetic tree
 for rm_file in outfile outtree
@@ -228,7 +242,7 @@ do
     [ -e "${rm_file}" ] && rm -f "${rm_file}"
 done
 
-ln -sf ${prefix_output}.phylip.txt infile
+ln -sf "${prefix_output}.phylip.txt" infile
 
 if [ -z "${out_sample_id}" ]
 then
@@ -256,7 +270,7 @@ then
     [ $? != 0 ] && exit 1
 fi
 
-if [ ${bootstrap_analysis} == 1 ]
+if [ ${bootstrap_analysis} -eq 1 ]
 then
     "${R}" --slave --vanilla --file="${SCRIPTS_DIR}/determine_bs_tree.R" --args -i "${prefix_output}.ml.tree" -o "${prefix_output}" -p "${prefix_output}.phylip.txt" -n ${num_bs_sample}
     [ $? != 0 ] && exit 1
