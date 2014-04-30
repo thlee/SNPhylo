@@ -1,4 +1,4 @@
-VERSION="04222014"
+VERSION="20140430"
 
 # Declare functions
 print_help_and_exit () {
@@ -136,7 +136,7 @@ done
 if [ ! -z "${vcf_file}" ]
 then
     [ ! -e "${vcf_file}" ] && print_help_and_exit 1 "VCF file (${vcf_file}) was not found!"
-    [ $(wc -l < "${vcf_file}") -lt 10000 ] && print_help_and_exit 1 "VCF file (${vcf_file}) is too small to run this script!"
+    [ $(wc -l < "${vcf_file}") -lt 5000 ] && print_help_and_exit 1 "VCF file (${vcf_file}) is too small to run this script!"
 
     # Remove VCF data which have many low depth of coverage samples
     echo "Start to remove low quality data."
@@ -148,7 +148,7 @@ then
     echo
 
     # 
-    [ $(wc -l < "${prefix_output}.filtered.vcf") -lt 10000 ] && print_help_and_exit 1 "Error: There are too small number of SNP data in a file (${prefix_output}.filtered.vcf)!\nPlease restart this script with different parameter values (-p and/or -c)."
+    [ $(wc -l < "${prefix_output}.filtered.vcf") -lt 5000 ] && print_help_and_exit 1 "Error: There are too small number of SNP data in a file (${prefix_output}.filtered.vcf)!\nPlease restart this script with different parameter values (-p and/or -c)."
 
     # Generate sequences from SNP data
     "${R}" --slave --vanilla --file="${SCRIPTS_DIR}/generate_snp_sequence.R" --args -v "${prefix_output}.filtered.vcf" -l "${ld_threshold}" -m "${maf_threshold}" -M "${missing_rate}" -o "${prefix_output}" -a "${num_last_autosome}"
@@ -156,7 +156,7 @@ then
 elif [ ! -z "${hap_file}" ]
 then
     [ ! -e "${hap_file}" ] && print_help_and_exit 1 "HapMap file (${hap_file}) was not found!"
-    [ $(wc -l < "${hap_file}") -lt 10000 ] && print_help_and_exit 1 "HapMap file (${hap_file}) is too small to run this script!"
+    [ $(wc -l < "${hap_file}") -lt 5000 ] && print_help_and_exit 1 "HapMap file (${hap_file}) is too small to run this script!"
 
     # Remove HapMap data which have many no genotype data
     echo "Start to remove low quality data."
@@ -169,7 +169,7 @@ then
     echo
 
     # 
-    [ $(wc -l < "${prefix_output}.filtered.hapmap") -lt 10000 ] && print_help_and_exit 1 "Error: There are too small number of SNP data in a file (${prefix_output}.filtered.hapmap)!\nPlease restart this script with different parameter values (-p)."
+    [ $(wc -l < "${prefix_output}.filtered.hapmap") -lt 5000 ] && print_help_and_exit 1 "Error: There are too small number of SNP data in a file (${prefix_output}.filtered.hapmap)!\nPlease restart this script with different parameter values (-p)."
 
     # Generate sequences from SNP data
     "${R}" --slave --vanilla --file="${SCRIPTS_DIR}/generate_snp_sequence.R" --args -H "${prefix_output}.filtered.hapmap" -l "${ld_threshold}" -m "${maf_threshold}" -M "${missing_rate}" -o "${prefix_output}" -a "${num_last_autosome}"
@@ -177,7 +177,7 @@ then
 elif [ ! -z "${smp_file}" ]
 then
     [ ! -e "${smp_file}" ] && print_help_and_exit 1 "Simple SNP file (${smp_file}) was not found!"
-    [ $(wc -l < "${smp_file}") -lt 10000 ] && print_help_and_exit 1 "Simple data file (${smp_file}) is too small to run this script!"
+    [ $(wc -l < "${smp_file}") -lt 5000 ] && print_help_and_exit 1 "Simple data file (${smp_file}) is too small to run this script!"
 
 
     # Convert Simple SNP data file to HapMap file
@@ -197,7 +197,7 @@ then
     echo
 
     # 
-    [ $(wc -l < "${prefix_output}.filtered.hapmap") -lt 10000 ] && print_help_and_exit 1 "Error: There are too small number of SNP data in a file (${prefix_output}.filtered.hapmap)!\nPlease restart this script with different parameter values (-p)."
+    [ $(wc -l < "${prefix_output}.filtered.hapmap") -lt 5000 ] && print_help_and_exit 1 "Error: There are too small number of SNP data in a file (${prefix_output}.filtered.hapmap)!\nPlease restart this script with different parameter values (-p)."
 
     # Generate sequences from SNP data
     "${R}" --slave --vanilla --file="${SCRIPTS_DIR}/generate_snp_sequence.R" --args -H "${prefix_output}.filtered.hapmap" -l "${ld_threshold}" -m "${maf_threshold}" -M "${missing_rate}" -o "${prefix_output}" -a "${num_last_autosome}"
@@ -228,7 +228,7 @@ then
 fi
 
 #~/programs/clustalw/bin/clustalw2 -TYPE=DNA -ALIGN -OUTPUT=PHYLIP -INFILE=${prefix_output}.seq -OUTFILE=${prefix_output}.phylip
-if [ muscle_analysis -eq 1 ]
+if [ ${muscle_analysis} -eq 1 ]
 then
     "${MUSCLE}" -phyi -in "${prefix_output}.fasta" -out "${prefix_output}.phylip.txt"; [ $? != 0 ] && exit 1
 else

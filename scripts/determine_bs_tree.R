@@ -49,7 +49,7 @@ fit <- pml(newick, phylip)
 #fit <- optim.pml(fit, TRUE)
 
 set.seed(1)
-bs <- bootstrap.pml(fit, bs = num.bs_sample, optNni=TRUE)
+bs <- bootstrap.pml(fit, bs = num.bs_sample, optNni=TRUE, multicore=TRUE)
 png(filename = bs_image_file.name, width = 1000, height = 1000)
 options(warn=-1)
 bs_tree <- plotBS(fit$tree, bs, cex = 1, edge.width = 2)

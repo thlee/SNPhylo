@@ -22,7 +22,7 @@ seq_len = len(seq_data[seq_id])
 print len(seq_data), len(seq_data[seq_id])
 for seq_id in seq_ids:
     seq = seq_data[seq_id]
-    sys.stdout.write(seq_id + (" " * (10 - len(seq_id))))
+    sys.stdout.write(seq_id[:10] + (" " * (10 - len(seq_id))))
     for i in range(0, 50 if seq_len >= 50 else seq_len, 10):
         sys.stdout.write(" " + seq[i:i+10])
     print

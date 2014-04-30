@@ -255,7 +255,7 @@ last.autosome <- ifelse(is.null(opt$asome), 22, opt$asome)
 library(gdsfmt)
 library(SNPRelate)
 
-option = snpgdsOption(autosome.end=last.autosome)
+snpgds.option = snpgdsOption(autosome.end=last.autosome)
 
 #library(compiler)
 #enableJIT(3)
@@ -267,12 +267,12 @@ if (! is.null(opt$gds)) {
     vcf.file <- opt$vcf
     if (! file.exists(vcf.file)) { cat(sprintf("VCF file (%s) was not found!\n", vcf.file)); h(1) }
     gds.file <- sprintf("%s.gds", file.prefix)
-    snpgdsVCF2GDS(vcf.file, gds.file, method="biallelic.only", compress.annotation="ZIP.fast")
+    snpgdsVCF2GDS(vcf.file, gds.file, method="biallelic.only", compress.annotation="ZIP.fast", option=snpgds.option)
 } else if (! is.null(opt$hapmap)) {
     hapmap.file <- opt$hapmap
     if (! file.exists(hapmap.file)) { cat(sprintf("HapMap file (%s) was not found!\n", hapmap.file)); h(1) }
     gds.file <- sprintf("%s.gds", file.prefix)
-    hapmap2gds(hapmap.file, gds.file, compress.annotation="ZIP.fast")
+    hapmap2gds(hapmap.file, gds.file, compress.annotation="ZIP.fast", option=snpgds.option)
 } else {
     h(1)
 }
