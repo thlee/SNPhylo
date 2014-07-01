@@ -65,7 +65,7 @@ On Lion (10.7.5; 64 bit)
 
     START TO SET UP FOR SNPHYLO!!!
 
-    The detected path of Rscript is /bin/Rscript. Is it correct? [Y/n] y 
+    The detected path of R is /bin/R. Is it correct? [Y/n] y 
 
     The detected path of python is /bin/python. Is it correct? [Y/n] y
 

@@ -62,10 +62,11 @@ On Fedora 18 (64 bit)
     $ pushd "${SNPHYLO_HOME}"
 
     $ bash setup.sh
+    Version: 20xxxxxx
 
     START TO SET UP FOR SNPHYLO!!!
 
-    The detected path of Rscript is /bin/Rscript. Is it correct? [Y/n] y 
+    The detected path of R is /bin/R. Is it correct? [Y/n] y 
 
     The detected path of python is /bin/python. Is it correct? [Y/n] y
 
@@ -75,7 +76,7 @@ On Fedora 18 (64 bit)
     dnaml is not found. Is the program already installed? [y/N] y
     Please enter the path of dnaml program (ex: /home/foo/bin/dnaml): /home/foo/snphylo/phylip/exe/dnaml
 
-    At least one R package (gdsfmt, phangorn, SNPRelate or getopt) to run this pipeline is not found. Is the program already installed? [y/N] n
+    At least one R package (gdsfmt, SNPRelate, getopt or phangorn) to run this pipeline is not found. Are the packages already installed? [y/N] n
 
     Do you want to install the packages by this script? [y/N] y
 
@@ -170,7 +171,7 @@ On Ubuntu 13.10 (64 bit)
     dnaml is not found. Is the program already installed? [y/N] y
     Please enter the path of dnaml program (ex: /home/foo/bin/dnaml): /home/foo/snphylo/phylip/exe/dnaml
 
-    At least one R package (gdsfmt, phangorn, SNPRelate or getopt) to run this pipeline is not found. Is the program already installed? [y/N] n
+    At least one R package (gdsfmt, SNPRelate, getopt or phangorn) to run this pipeline is not found. Are the packages already installed? [y/N]
 
     Do you want to install the packages by this script? [y/N] y
 
