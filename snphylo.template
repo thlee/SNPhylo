@@ -1,4 +1,4 @@
-VERSION="20140430"
+VERSION="20140701"
 
 # Declare functions
 print_help_and_exit () {
@@ -7,12 +7,13 @@ print_help_and_exit () {
     echo -e "Version: ${VERSION}" 1>&2
     echo 1>&2
     echo -e "Usage:" 1>&2
-    echo -e "\t$(basename $0) -v VCF_file [-p Maximum_PLCS (5)] [-c Minimum_depth_of_coverage (5)]|-H HapMap_file [-p Maximum_PNSS (5)]|-s Simple_SNP_file [-p Maximum_PNSS (5)]|-d GDS_file [-l LD_threshold (0.1)] [-m MAF_threshold (0.1)] [-M Missing_rate (0.1)] [-o Outgroup_sample_name] [-P Prefix_of_output_files (snphylo.output)] [-b [-B The_number_of_bootstrap_samples (100)]] [-a The_number_of_the_last_autosome (22)] [-A] [-h]" 1>&2
+    echo -e "\t$(basename $0) -v VCF_file [-p Maximum_PLCS (5)] [-c Minimum_depth_of_coverage (5)]|-H HapMap_file [-p Maximum_PNSS (5)]|-s Simple_SNP_file [-p Maximum_PNSS (5)]|-d GDS_file [-l LD_threshold (0.1)] [-m MAF_threshold (0.1)] [-M Missing_rate (0.1)] [-o Outgroup_sample_name] [-P Prefix_of_output_files (snphylo.output)] [-b [-B The_number_of_bootstrap_samples (100)]] [-a The_number_of_the_last_autosome (22)] [-r] [-A] [-h]" 1>&2
     echo 1>&2
     echo -e "Options:" 1>&2
     echo -e "\t-A: Perform multiple alignment by MUSCLE" 1>&2
     echo -e "\t-b: Perform (non-parametric) bootstrap analysis and generate a tree" 1>&2
     echo -e "\t-h: Show help and exit" 1>&2
+    echo -e "\t-r: Skip the step removing low quality data (-p and -c option are ignored)." 1>&2
     echo 1>&2
     echo -e "Acronyms:" 1>&2
     echo -e "\tPLCS: The percent of Low Coverage Sample" 1>&2
@@ -68,9 +69,10 @@ bootstrap_analysis=0
 muscle_analysis=0
 num_bs_sample=100
 num_last_autosome=22
+skip_removing_low_quality_data=0
 
 # Parse positional parameters
-while getopts "v:H:d:c:p:l:m:M:P:o:s:bB:Aa:h" OPT
+while getopts "v:H:d:c:p:l:m:M:P:o:s:bB:Aa:rh" OPT
 do
     case "${OPT}" in
         'v')
@@ -115,6 +117,9 @@ do
         'A')
             muscle_analysis=1
             ;;
+        'r')
+            skip_removing_low_quality_data=1
+            ;;
         'a')
             num_last_autosome="${OPTARG}"
             ;;
@@ -138,42 +143,62 @@ then
     [ ! -e "${vcf_file}" ] && print_help_and_exit 1 "VCF file (${vcf_file}) was not found!"
     [ $(wc -l < "${vcf_file}") -lt 5000 ] && print_help_and_exit 1 "VCF file (${vcf_file}) is too small to run this script!"
 
-    # Remove VCF data which have many low depth of coverage samples
-    echo "Start to remove low quality data."
-    "${PYTHON}" "${SCRIPTS_DIR}/remove_low_depth_genotype_data.py" "${vcf_file}" ${min_depth_of_coverage} ${max_plcs_pnss} > "${prefix_output}.filtered.vcf"
-    [ $? != 0 ] && exit 1
+    if [ ${skip_removing_low_quality_data} -eq 1 ]
+    then
+        #
+        [ $(wc -l < "${vcf_file}") -gt 1000000 ] && print_help_and_exit 1 "Error: There are too many SNP data in the file (${vcf_file})!\nPlease restart this script without '-r' option in order to remove low quality data."
 
-    # Determine and show the number of removed SNP data
-    echo -e "\n$[$(wc -l < "${vcf_file}") - $(wc -l < "${prefix_output}.filtered.vcf")] low quality lines were removed."
-    echo
+        # Generate sequences from SNP data
+        "${R}" --slave --vanilla --file="${SCRIPTS_DIR}/generate_snp_sequence.R" --args -v "${vcf_file}" -l "${ld_threshold}" -m "${maf_threshold}" -M "${missing_rate}" -o "${prefix_output}" -a "${num_last_autosome}"
+        [ $? != 0 ] && exit 1
+    else
+        # Remove VCF data which have many low depth of coverage samples
+        echo "Start to remove low quality data."
+        "${PYTHON}" "${SCRIPTS_DIR}/remove_low_depth_genotype_data.py" "${vcf_file}" ${min_depth_of_coverage} ${max_plcs_pnss} > "${prefix_output}.filtered.vcf"
+        [ $? != 0 ] && exit 1
 
-    # 
-    [ $(wc -l < "${prefix_output}.filtered.vcf") -lt 5000 ] && print_help_and_exit 1 "Error: There are too small number of SNP data in a file (${prefix_output}.filtered.vcf)!\nPlease restart this script with different parameter values (-p and/or -c)."
+        # Determine and show the number of removed SNP data
+        echo -e "\n$[$(wc -l < "${vcf_file}") - $(wc -l < "${prefix_output}.filtered.vcf")] low quality lines were removed."
+        echo
 
-    # Generate sequences from SNP data
-    "${R}" --slave --vanilla --file="${SCRIPTS_DIR}/generate_snp_sequence.R" --args -v "${prefix_output}.filtered.vcf" -l "${ld_threshold}" -m "${maf_threshold}" -M "${missing_rate}" -o "${prefix_output}" -a "${num_last_autosome}"
-    [ $? != 0 ] && exit 1
+        # 
+        [ $(wc -l < "${prefix_output}.filtered.vcf") -lt 5000 ] && print_help_and_exit 1 "Error: There are too small number of SNP data in the file (${prefix_output}.filtered.vcf)!\nPlease restart this script with different parameter values (-p and/or -c)."
+
+        # Generate sequences from SNP data
+        "${R}" --slave --vanilla --file="${SCRIPTS_DIR}/generate_snp_sequence.R" --args -v "${prefix_output}.filtered.vcf" -l "${ld_threshold}" -m "${maf_threshold}" -M "${missing_rate}" -o "${prefix_output}" -a "${num_last_autosome}"
+        [ $? != 0 ] && exit 1
+    fi
 elif [ ! -z "${hap_file}" ]
 then
     [ ! -e "${hap_file}" ] && print_help_and_exit 1 "HapMap file (${hap_file}) was not found!"
     [ $(wc -l < "${hap_file}") -lt 5000 ] && print_help_and_exit 1 "HapMap file (${hap_file}) is too small to run this script!"
 
-    # Remove HapMap data which have many no genotype data
-    echo "Start to remove low quality data."
+    if [ ${skip_removing_low_quality_data} -eq 1 ]
+    then
+        #
+        [ $(wc -l < "${hap_file}") -gt 1000000 ] && print_help_and_exit 1 "Error: There are too many SNP data in the file (${vcf_file})!\nPlease restart this script without '-r' option in order to remove low quality data."
 
-    "${PYTHON}" "${SCRIPTS_DIR}/remove_no_genotype_data.py" "${hap_file}" ${max_plcs_pnss} > "${prefix_output}.filtered.hapmap"
-    [ $? != 0 ] && exit 1
-
-    # Determine and show the number of removed SNP data
-    echo -e "\n$[$(wc -l < "${hap_file}") - $(wc -l < "${prefix_output}.filtered.hapmap")] low quality lines were removed"
-    echo
-
-    # 
-    [ $(wc -l < "${prefix_output}.filtered.hapmap") -lt 5000 ] && print_help_and_exit 1 "Error: There are too small number of SNP data in a file (${prefix_output}.filtered.hapmap)!\nPlease restart this script with different parameter values (-p)."
-
-    # Generate sequences from SNP data
-    "${R}" --slave --vanilla --file="${SCRIPTS_DIR}/generate_snp_sequence.R" --args -H "${prefix_output}.filtered.hapmap" -l "${ld_threshold}" -m "${maf_threshold}" -M "${missing_rate}" -o "${prefix_output}" -a "${num_last_autosome}"
-    [ $? != 0 ] && exit 1
+        # Generate sequences from SNP data
+        "${R}" --slave --vanilla --file="${SCRIPTS_DIR}/generate_snp_sequence.R" --args -H "${hap_file}" -l "${ld_threshold}" -m "${maf_threshold}" -M "${missing_rate}" -o "${prefix_output}" -a "${num_last_autosome}"
+        [ $? != 0 ] && exit 1
+    else
+        # Remove HapMap data which have many no genotype data
+        echo "Start to remove low quality data."
+    
+        "${PYTHON}" "${SCRIPTS_DIR}/remove_no_genotype_data.py" "${hap_file}" ${max_plcs_pnss} > "${prefix_output}.filtered.hapmap"
+        [ $? != 0 ] && exit 1
+    
+        # Determine and show the number of removed SNP data
+        echo -e "\n$[$(wc -l < "${hap_file}") - $(wc -l < "${prefix_output}.filtered.hapmap")] low quality lines were removed"
+        echo
+    
+        # 
+        [ $(wc -l < "${prefix_output}.filtered.hapmap") -lt 5000 ] && print_help_and_exit 1 "Error: There are too small number of SNP data in the file (${prefix_output}.filtered.hapmap)!\nPlease restart this script with different parameter values (-p)."
+    
+        # Generate sequences from SNP data
+        "${R}" --slave --vanilla --file="${SCRIPTS_DIR}/generate_snp_sequence.R" --args -H "${prefix_output}.filtered.hapmap" -l "${ld_threshold}" -m "${maf_threshold}" -M "${missing_rate}" -o "${prefix_output}" -a "${num_last_autosome}"
+        [ $? != 0 ] && exit 1
+    fi
 elif [ ! -z "${smp_file}" ]
 then
     [ ! -e "${smp_file}" ] && print_help_and_exit 1 "Simple SNP file (${smp_file}) was not found!"
@@ -186,22 +211,33 @@ then
     "${PYTHON}" "${SCRIPTS_DIR}/convert_simple_to_hapmap.py" "${smp_file}" > "${prefix_output}.hapmap"
     [ $? != 0 ] && print_help_and_exit 1 "Error: The simple SNP file could not be converted to a HapMap file.\nPlease check the file and restart this script."
 
-    # Remove HapMap data which have many no genotype data
-    echo "Start to remove low quality data."
 
-    "${PYTHON}" "${SCRIPTS_DIR}/remove_no_genotype_data.py" "${prefix_output}.hapmap" ${max_plcs_pnss} > "${prefix_output}.filtered.hapmap"
-    [ $? != 0 ] && exit 1
+    if [ ${skip_removing_low_quality_data} -eq 1 ]
+    then
+        #
+        [ $(wc -l < "${hap_file}") -gt 1000000 ] && print_help_and_exit 1 "Error: There are too many SNP data in the file (${vcf_file})!\nPlease restart this script without '-r' option in order to remove low quality data."
 
-    # Determine and show the number of removed SNP data
-    echo -e "\n$[$(wc -l < "${prefix_output}.hapmap") - $(wc -l < "${prefix_output}.filtered.hapmap")] low quality lines were removed"
-    echo
-
-    # 
-    [ $(wc -l < "${prefix_output}.filtered.hapmap") -lt 5000 ] && print_help_and_exit 1 "Error: There are too small number of SNP data in a file (${prefix_output}.filtered.hapmap)!\nPlease restart this script with different parameter values (-p)."
-
-    # Generate sequences from SNP data
-    "${R}" --slave --vanilla --file="${SCRIPTS_DIR}/generate_snp_sequence.R" --args -H "${prefix_output}.filtered.hapmap" -l "${ld_threshold}" -m "${maf_threshold}" -M "${missing_rate}" -o "${prefix_output}" -a "${num_last_autosome}"
-    [ $? != 0 ] && exit 1
+        # Generate sequences from SNP data
+        "${R}" --slave --vanilla --file="${SCRIPTS_DIR}/generate_snp_sequence.R" --args -H "${prefix_output}.hapmap" -l "${ld_threshold}" -m "${maf_threshold}" -M "${missing_rate}" -o "${prefix_output}" -a "${num_last_autosome}"
+        [ $? != 0 ] && exit 1
+    else
+        # Remove HapMap data which have many no genotype data
+        echo "Start to remove low quality data."
+    
+        "${PYTHON}" "${SCRIPTS_DIR}/remove_no_genotype_data.py" "${prefix_output}.hapmap" ${max_plcs_pnss} > "${prefix_output}.filtered.hapmap"
+        [ $? != 0 ] && exit 1
+    
+        # Determine and show the number of removed SNP data
+        echo -e "\n$[$(wc -l < "${prefix_output}.hapmap") - $(wc -l < "${prefix_output}.filtered.hapmap")] low quality lines were removed"
+        echo
+    
+        # 
+        [ $(wc -l < "${prefix_output}.filtered.hapmap") -lt 5000 ] && print_help_and_exit 1 "Error: There are too small number of SNP data in the file (${prefix_output}.filtered.hapmap)!\nPlease restart this script with different parameter values (-p)."
+    
+        # Generate sequences from SNP data
+        "${R}" --slave --vanilla --file="${SCRIPTS_DIR}/generate_snp_sequence.R" --args -H "${prefix_output}.filtered.hapmap" -l "${ld_threshold}" -m "${maf_threshold}" -M "${missing_rate}" -o "${prefix_output}" -a "${num_last_autosome}"
+        [ $? != 0 ] && exit 1
+    fi
 elif [ ! -z "${gds_file}" ]
 then
     [ ! -e "${gds_file}" ] && print_help_and_exit 1 "GDS file (${gds_file}) was not found!"

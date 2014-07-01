@@ -1,4 +1,5 @@
 hapmap2gds <- function (hapmap.fn, outfn.gds, nblock = 1024, compress.annotation = "ZIP.fast", option = NULL, verbose = TRUE) {
+    #If a SNP is not biallelic, the SNP will be ignored.
     stopifnot(is.character(hapmap.fn))
     stopifnot(is.character(outfn.gds))
     if (is.null(option)) 
@@ -67,12 +68,16 @@ hapmap2gds <- function (hapmap.fn, outfn.gds, nblock = 1024, compress.annotation
     determine.geno.code <- function(snp.allele, genotypes) {
         a <- unlist(strsplit(snp.allele, "/", fixed=TRUE))
 
-        geno.str <- c(paste(a[1], a[1], sep = ""), paste(a[2], a[2], sep = ""), paste(a[1], a[2], sep = ""), paste(a[2], a[1], sep = ""), paste("N", "N", sep = ""))
-        geno.code <- c(2, 0, 1, 1, 3)
+        if (length(a) == 2) {
+            geno.str <- c(paste(a[1], a[1], sep = ""), paste(a[2], a[2], sep = ""), paste(a[1], a[2], sep = ""), paste(a[2], a[1], sep = ""), paste("N", "N", sep = ""))
+            geno.code <- c(2, 0, 1, 1, 3)
 
-        x <- match(genotypes, geno.str)
-        x <- geno.code[x]
-        x[is.na(x)] <- 3
+            x <- match(genotypes, geno.str)
+            x <- geno.code[x]
+            x[is.na(x)] <- 3
+        } else { # if the SNP is not biallelic
+            x <- rep(3, length(genotypes))
+        }
 
         return(x)
     }
@@ -186,6 +191,7 @@ gds2fasta <- function (gdsobj, pos.fn, snp.id = NULL, verbose = FALSE) {
     snp.idx <- match(snp.ids, total.snp.ids)
 
     rep.genotype <- read.gdsn(index.gdsn(gdsobj, "genotype"))[,snp.idx]
+#   rep.allele <- suppressWarnings(do.call(rbind, strsplit(read.gdsn(index.gdsn(gdsobj, "snp.allele"))[snp.idx], "/", fixed = TRUE))) # In order to suppress the warning by a non-biallelic SNP
     rep.allele <- do.call(rbind, strsplit(read.gdsn(index.gdsn(gdsobj, "snp.allele"))[snp.idx], "/", fixed = TRUE))
     sample.id <- read.gdsn(index.gdsn(gdsobj, "sample.id"))
 
@@ -203,7 +209,7 @@ gds2fasta <- function (gdsobj, pos.fn, snp.id = NULL, verbose = FALSE) {
                 seq[j] <- rep.allele[j,2]
             } else if (rep.genotype[i,j] == 2) {
                 seq[j] <- rep.allele[j,1]
-            } else {
+            } else if (rep.genotype[i,j] == 1) {
                 if        ((rep.allele[j,1] == "A" && rep.allele[j,2] == "G") || (rep.allele[j,1] == "G" && rep.allele[j,2] == "A")) {
                     seq[j] <- "R"
                 } else if ((rep.allele[j,1] == "C" && rep.allele[j,2] == "T") || (rep.allele[j,1] == "T" && rep.allele[j,2] == "C")) {
@@ -211,6 +217,8 @@ gds2fasta <- function (gdsobj, pos.fn, snp.id = NULL, verbose = FALSE) {
                 } else {
                     seq[j] <- "N"
                 }
+            } else {
+                seq[j] <- "N"
             }
         }
         cat(">", sample.id[i], "\n", file = file.name, sep = "", append = TRUE)

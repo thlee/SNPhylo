@@ -1,4 +1,4 @@
-VERSION="12192013"
+VERSION="20140701"
 
 function ask_program_path {
     local program_name="${1}"
@@ -26,11 +26,11 @@ function ask_r_lib_dir {
     do
         local r_lib_dir=""
         echo 1>&2
-        read -p "At least one R package (phangorn, SNPRelate or getopt) to run this pipeline is not found. Is the program already installed? [y/N] " -n 1
+        read -p "At least one R package (gdsfmt, SNPRelate, getopt or phangorn) to run this pipeline is not found. Are the packages already installed? [y/N] " -n 1
         if [[ ${REPLY} =~ ^[Yy]$ ]]
         then
             echo 1>&2
-            read -p "Please enter the directory of the R package (ex: /home/foo/r_package): " r_lib_dir
+            read -p "Please enter the directory for R packages (ex: /home/foo/r_packages): " r_lib_dir
             [ $(check_R_library "${r_lib_dir}") -eq 0 ] && break
         else
             break
@@ -71,7 +71,7 @@ function check_R_library {
     if [ -z "${r_lib_dir}" ]
     then
         "${R_BASE_DIR}/R" --vanilla --slave <<R_SCRIPT
-if (all(c("SNPRelate", "phangorn", "getopt") %in% rownames(installed.packages()))) {
+if (all(c("gdsfmt", "SNPRelate", "getopt", "phangorn") %in% rownames(installed.packages()))) {
     quit(save="no", status=0)
 } else {
     quit(save="no", status=1)
@@ -79,7 +79,7 @@ if (all(c("SNPRelate", "phangorn", "getopt") %in% rownames(installed.packages())
 R_SCRIPT
     else
         "${R_BASE_DIR}/R" --vanilla --slave <<R_SCRIPT
-if (all(c("SNPRelate", "phangorn", "getopt") %in% rownames(installed.packages(lib.loc="${r_lib_dir}")))) {
+if (all(c("gdsfmt", "SNPRelate", "getopt", "phangorn") %in% rownames(installed.packages(lib.loc="${r_lib_dir}")))) {
     quit(save="no", status=0)
 } else {
     quit(save="no", status=1)
@@ -128,11 +128,19 @@ then
         if [[ ${REPLY} =~ ^[Yy]$ ]]
         then
             [ ! -e "${BASE_DIR}/R_LIBS/" ] && mkdir -p "${BASE_DIR}/R_LIBS/"
+#           curl -O 'http://cran.r-project.org/src/contrib/Archive/gdsfmt/gdsfmt_1.0.4.tar.gz'
+#           curl -O 'http://cran.r-project.org/src/contrib/Archive/SNPRelate/SNPRelate_0.9.19.tar.gz'
             "${R_BASE_DIR}/R" --vanilla --slave <<R_SCRIPT
-install.packages("SNPRelate", lib="${BASE_DIR}/R_LIBS/", repos="http://cran.r-project.org", type="source")
-install.packages("phangorn", lib="${BASE_DIR}/R_LIBS/", repos="http://cran.r-project.org", type="source")
 install.packages("getopt", lib="${BASE_DIR}/R_LIBS/", repos="http://cran.r-project.org", type="source")
+install.packages("phangorn", lib="${BASE_DIR}/R_LIBS/", repos="http://cran.r-project.org", type="source")
+
+download.file("http://cran.r-project.org/src/contrib/Archive/gdsfmt/gdsfmt_1.0.4.tar.gz", "gdsfmt_1.0.4.tar.gz", quiet=FALSE, mode="wb", cacheOK=FALSE)
+install.packages("gdsfmt_1.0.4.tar.gz", lib="${BASE_DIR}/R_LIBS/", repos=NULL, type="source")
+
+download.file("http://cran.r-project.org/src/contrib/Archive/SNPRelate/SNPRelate_0.9.19.tar.gz", "SNPRelate_0.9.19.tar.gz", quiet=FALSE, mode="wb", cacheOK=FALSE)
+install.packages("SNPRelate_0.9.19.tar.gz", lib="${BASE_DIR}/R_LIBS/", repos=NULL, type="source")
 R_SCRIPT
+
             if [ $(check_R_library "${BASE_DIR}/R_LIBS/") -eq 1 -o $? -ne 0 ]
             then
                 echo -e "\nFail to install the packages. :("
@@ -140,6 +148,8 @@ R_SCRIPT
             else
                 r_lib_dir="${BASE_DIR}/R_LIBS/"
             fi
+
+            rm -f gdsfmt_1.0.4.tar.gz SNPRelate_0.9.19.tar.gz
         else
             r_lib_dir=""
         fi
@@ -147,7 +157,7 @@ R_SCRIPT
 
     if [ -z "${r_lib_dir}" ]
     then
-        echo -e "\nYou can download the packages at http://cran.r-project.org/web/packages/.\nPlease, download and install the packages and restart this script."
+        echo -e "\nYou can download the packages at \n\thttp://cran.r-project.org/web/packages/getopt/index.html, \n\thttp://cran.r-project.org/src/contrib/Archive/gdsfmt/ and \n\thttp://cran.r-project.org/src/contrib/Archive/SNPRelate/.\nPlease, download and install the packages and restart this script."
         rm -f "${BASE_DIR}/snphylo.cfg"
         exit 1
     else
