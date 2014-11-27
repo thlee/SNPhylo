@@ -212,8 +212,16 @@ gds2fasta <- function (gdsobj, pos.fn, snp.id = NULL, verbose = FALSE) {
             } else if (rep.genotype[i,j] == 1) {
                 if        ((rep.allele[j,1] == "A" && rep.allele[j,2] == "G") || (rep.allele[j,1] == "G" && rep.allele[j,2] == "A")) {
                     seq[j] <- "R"
+                } else if ((rep.allele[j,1] == "A" && rep.allele[j,2] == "C") || (rep.allele[j,1] == "C" && rep.allele[j,2] == "A")) {
+                    seq[j] <- "M"
+                } else if ((rep.allele[j,1] == "A" && rep.allele[j,2] == "T") || (rep.allele[j,1] == "T" && rep.allele[j,2] == "A")) {
+                    seq[j] <- "W"
                 } else if ((rep.allele[j,1] == "C" && rep.allele[j,2] == "T") || (rep.allele[j,1] == "T" && rep.allele[j,2] == "C")) {
                     seq[j] <- "Y"
+                } else if ((rep.allele[j,1] == "C" && rep.allele[j,2] == "G") || (rep.allele[j,1] == "G" && rep.allele[j,2] == "C")) {
+                    seq[j] <- "S"
+                } else if ((rep.allele[j,1] == "G" && rep.allele[j,2] == "T") || (rep.allele[j,1] == "T" && rep.allele[j,2] == "G")) {
+                    seq[j] <- "K"
                 } else {
                     seq[j] <- "N"
                 }
