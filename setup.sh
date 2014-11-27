@@ -1,4 +1,4 @@
-VERSION="20140701"
+VERSION="20141127"
 
 function ask_program_path {
     local program_name="${1}"
@@ -134,11 +134,9 @@ then
 install.packages("getopt", lib="${BASE_DIR}/R_LIBS/", repos="http://cran.r-project.org", type="source")
 install.packages("phangorn", lib="${BASE_DIR}/R_LIBS/", repos="http://cran.r-project.org", type="source")
 
-download.file("http://cran.r-project.org/src/contrib/Archive/gdsfmt/gdsfmt_1.0.4.tar.gz", "gdsfmt_1.0.4.tar.gz", quiet=FALSE, mode="wb", cacheOK=FALSE)
-install.packages("gdsfmt_1.0.4.tar.gz", lib="${BASE_DIR}/R_LIBS/", repos=NULL, type="source")
-
-download.file("http://cran.r-project.org/src/contrib/Archive/SNPRelate/SNPRelate_0.9.19.tar.gz", "SNPRelate_0.9.19.tar.gz", quiet=FALSE, mode="wb", cacheOK=FALSE)
-install.packages("SNPRelate_0.9.19.tar.gz", lib="${BASE_DIR}/R_LIBS/", repos=NULL, type="source")
+source("http://bioconductor.org/biocLite.R")
+biocLite("gdsfmt")
+biocLite("SNPRelate")
 R_SCRIPT
 
             if [ $(check_R_library "${BASE_DIR}/R_LIBS/") -eq 1 -o $? -ne 0 ]
