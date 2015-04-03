@@ -283,7 +283,11 @@ if (! is.null(opt$gds)) {
     vcf.file <- opt$vcf
     if (! file.exists(vcf.file)) { cat(sprintf("VCF file (%s) was not found!\n", vcf.file)); h(1) }
     gds.file <- sprintf("%s.gds", file.prefix)
-    snpgdsVCF2GDS(vcf.file, gds.file, method="biallelic.only", compress.annotation="ZIP.fast", option=snpgds.option)
+    if (exists("snpgdsVCF2GDS_R")) {
+        snpgdsVCF2GDS_R(vcf.file, gds.file, method="biallelic.only", compress.annotation="ZIP.fast", option=snpgds.option)
+    } else {
+        snpgdsVCF2GDS(vcf.file, gds.file, method="biallelic.only", compress.annotation="ZIP.fast", option=snpgds.option)
+    }
 } else if (! is.null(opt$hapmap)) {
     hapmap.file <- opt$hapmap
     if (! file.exists(hapmap.file)) { cat(sprintf("HapMap file (%s) was not found!\n", hapmap.file)); h(1) }
