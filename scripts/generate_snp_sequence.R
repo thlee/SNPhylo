@@ -244,13 +244,15 @@ library(getopt)
 #LD Linkage Disequilibrium
 #MAF Minor Allele Frequency
 h <- function(x) {
-    cat("Usage: Rscript --vanilla generate_snp_sequence.R -v VCF_file|-H HapMap_file|-d GDS_file [-l LD_threshold (0.5)] [-m MAF_threshold (0.05)] [-M Missing_rate (0.05)] [-o Prefix_of_output_files (output)] [-a The_number_of_the_last_autosome (22)] [-h]\n\n")
+    cat("Usage: Rscript --vanilla generate_snp_sequence.R -v VCF_file|-H HapMap_file|-d GDS_file [-l LD_threshold (0.5)] [-b LD_window_bp (500000)] [-s LD_window_snp (NA)] [-m MAF_threshold (0.05)] [-M Missing_rate (0.05)] [-o Prefix_of_output_files (output)] [-a The_number_of_the_last_autosome (22)] [-h]\n\n")
     quit(save="no", status=x)
 }
 
 opt <- getopt(matrix(c(
     'help',    'h', 0, "logical",
     'ld',      'l', 1, "double",
+    'bpwin',   'b', 1, "integer",
+    'snpwin',  's', 1, "integer",
     'maf',     'm', 1, "double",
     'miss',    'M', 1, "double",
     'asome',   'a', 1, "integer",
@@ -264,6 +266,8 @@ if (! is.null(opt$help)) { h(0) }
 
 file.prefix <- ifelse(is.null(opt$prefix), "output", opt$prefix)
 ld.threshold <- ifelse(is.null(opt$ld), 0.5, opt$ld)
+slide.max.bp <- ifelse(is.null(opt$bpwin), 500000, opt$bpwin)
+slide.max.n <- ifelse(is.null(opt$snpwin), NA, opt$snpwin)
 maf.threshold <- ifelse(is.null(opt$maf), 0.05, opt$maf)
 miss.rate <- ifelse(is.null(opt$miss), 0.05, opt$miss)
 last.autosome <- ifelse(is.null(opt$asome), 22, opt$asome)
@@ -298,6 +302,6 @@ if (! is.null(opt$gds)) {
 }
 
 genofile <- openfn.gds(gds.file)
-snpset <- snpgdsLDpruning(genofile, ld.threshold=ld.threshold, maf=maf.threshold, missing.rate=miss.rate)
+snpset <- snpgdsLDpruning(genofile, ld.threshold=ld.threshold, slide.max.bp = slide.max.bp, slide.max.n = slide.max.n, maf=maf.threshold, missing.rate=miss.rate)
 snpset.id <- unlist(snpset)
 gds2fasta(genofile, file.prefix, snp.id = snpset.id)
