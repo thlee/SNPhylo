@@ -1,4 +1,4 @@
-VERSION="20140701"
+VERSION="20160204"
 
 # Declare functions
 print_help_and_exit () {
