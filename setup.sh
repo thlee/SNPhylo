@@ -164,8 +164,7 @@ R_SCRIPT
 fi
 
 # Make a pipeline script file
-(echo '#!'${BASH_PATH}; grep -ve "^#!" ${BASE_DIR}/snphylo.template) > ${BASE_DIR}/snphylo.sh
-chmod a+x snphylo.sh
+chmod a+x ${BASE_DIR}/snphylo.sh
 
 echo
 echo "SNPHYLO is successfully installed!!!"
