@@ -254,6 +254,7 @@ opt <- getopt(matrix(c(
     'maf',     'm', 1, "double",
     'miss',    'M', 1, "double",
     'asome',   'a', 1, "integer",
+    'tnum',    't', 1, "integer",
     'prefix',  'o', 1, "character",
     'vcf',     'v', 1, "character",
     'hapmap',  'H', 1, "character",
@@ -267,6 +268,7 @@ ld.threshold <- ifelse(is.null(opt$ld), 0.5, opt$ld)
 maf.threshold <- ifelse(is.null(opt$maf), 0.05, opt$maf)
 miss.rate <- ifelse(is.null(opt$miss), 0.05, opt$miss)
 last.autosome <- ifelse(is.null(opt$asome), 22, opt$asome)
+num.thread <- ifelse(is.null(opt$tnum), 1, opt$tnum)
 
 library(gdsfmt)
 library(SNPRelate)
@@ -298,6 +300,6 @@ if (! is.null(opt$gds)) {
 }
 
 genofile <- openfn.gds(gds.file)
-snpset <- snpgdsLDpruning(genofile, ld.threshold=ld.threshold, maf=maf.threshold, missing.rate=miss.rate)
+snpset <- snpgdsLDpruning(genofile, ld.threshold=ld.threshold, maf=maf.threshold, missing.rate=miss.rate, num.thread = num.thread)
 snpset.id <- unlist(snpset)
 gds2fasta(genofile, file.prefix, snp.id = snpset.id)
