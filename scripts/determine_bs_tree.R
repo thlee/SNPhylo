@@ -50,6 +50,7 @@ fit <- pml(newick, phylip)
 
 set.seed(1)
 bs <- bootstrap.pml(fit, bs = num.bs_sample, optNni=TRUE, multicore=TRUE)
+#for (i in 1:num.bs_sample) {write.tree(bs[[i]], sprintf("%s.bs_sample.%i.tree", file.prefix, i))}
 png(filename = bs_image_file.name, width = 1000, height = 1000)
 options(warn=-1)
 bs_tree <- plotBS(fit$tree, bs, cex = 1, edge.width = 2)
