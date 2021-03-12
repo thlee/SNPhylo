@@ -291,7 +291,7 @@ then
     echo -e "y\n" | "${DNAML}"; [ $? != 0 ] && exit 1
 else
     out_sample_no=$[$(grep -ne "\<${out_sample_id}\>" infile | cut -f1 -d':') - 1]
-    if [ ${out_sample_no} -eq -1 }
+    if [ ${out_sample_no} -eq -1 ]
     then
         echo "Error!!! There is no sample name (${out_sample_id}) to use as a outgroup in a tree input file (${prefix_output}.phylip.txt)." 1>&2
         echo "Please check the name and restart this script." 1>&2
