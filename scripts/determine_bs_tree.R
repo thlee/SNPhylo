@@ -42,7 +42,12 @@ library(phangorn)
 bs_image_file.name <- paste(file.prefix, ".bs.png", sep = "")
 bs_tree_file.name  <- paste(file.prefix, ".bs.tree", sep = "")
 
-phylip <- read.phyDat(phylip.file, format="phylip", type="DNA")
+phylip <- tryCatch(
+	{read.phyDat(phylip.file, format="phylip", type="DNA")},
+	error= function(e) {read.phyDat(phylip.file, format="interleaved", type="DNA")}
+	)
+
+
 newick <- read.tree(newick.file)
 
 fit <- pml(newick, phylip)
