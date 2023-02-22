@@ -6,21 +6,21 @@ from itertools import groupby, chain
 from operator import itemgetter
 
 def help(error_no):
-    print >> sys.stderr, "Convert simple SNP data file to HapMap format"
-    print >> sys.stderr
-    print >> sys.stderr, "Version: 10112013"
-    print >> sys.stderr
-    print >> sys.stderr, "Usage:"
-    print >> sys.stderr, "    %s Simple_SNP_data_file" % os.path.basename(sys.argv[0])
-    print >> sys.stderr
-    print >> sys.stderr, "Simple SNP Data File Format:"
-    print >> sys.stderr, "#Chrom\tPos\tRef\tSample_ID1\tSample_ID2\t..."
-    print >> sys.stderr, "1\t1000\tA\tA\tT\t..."
-    print >> sys.stderr, "1\t1002\tG\tC\tG\t..."
-    print >> sys.stderr, "..."
-    print >> sys.stderr, "2\t2000\tG\tC\tG\t..."
-    print >> sys.stderr, "2\t2002\tA\tA\tT\t..."
-    print >> sys.stderr, "..."
+    print("Convert simple SNP data file to HapMap format", file=sys.stderr)
+    print(file=sys.stderr)
+    print("Version: 10112013", file=sys.stderr)
+    print(file=sys.stderr)
+    print("Usage:", file=sys.stderr)
+    print("    %s Simple_SNP_data_file" % os.path.basename(sys.argv[0]), file=sys.stderr)
+    print(file=sys.stderr)
+    print("Simple SNP Data File Format:", file=sys.stderr)
+    print("#Chrom\tPos\tRef\tSample_ID1\tSample_ID2\t...", file=sys.stderr)
+    print("1\t1000\tA\tA\tT\t...", file=sys.stderr)
+    print("1\t1002\tG\tC\tG\t...", file=sys.stderr)
+    print("...", file=sys.stderr)
+    print("2\t2000\tG\tC\tG\t...", file=sys.stderr)
+    print("2\t2002\tA\tA\tT\t...", file=sys.stderr)
+    print("...", file=sys.stderr)
     sys.exit(error_no)
 
 if len(sys.argv) != 2: help(1)
@@ -50,8 +50,8 @@ rs_num = 1
 for line in open(simple_file, "r"):
     simple_data = line.strip().split()
     if simple_data[0].upper() == "#CHROM":
-        print "rs#\talleles\tchrom\tpos\tstrand\tassembly#\tcenter\tprotLSID\tassayLSID\tpanelLSID\tQCcode\t" + \
-            "\t".join(simple_data[2:])
+        print("rs#\talleles\tchrom\tpos\tstrand\tassembly#\tcenter\tprotLSID\tassayLSID\tpanelLSID\tQCcode\t" + \
+            "\t".join(simple_data[2:]))
         continue
 
     alleles, genotype_data = determine_alleles(simple_data[2:])
@@ -59,14 +59,14 @@ for line in open(simple_file, "r"):
     try:
         chrom = int(simple_data[0])
     except ValueError:
-        print >> sys.stderr, "The Chromosome ID should be choromosome number.\n"
+        print("The Chromosome ID should be choromosome number.\n", file=sys.stderr)
         help(1)
 
     try:
         pos = int(simple_data[1])
     except ValueError:
-        print >> sys.stderr, "The Position should be number.\n"
+        print("The Position should be number.\n", file=sys.stderr)
         help(1)
 
-    print ("rs%08i\t%s\t%i\t%i\t.\tNA\tNA\tNA\tNA\tNA\tNA\t" % (rs_num, alleles, chrom, pos)) + "\t".join(genotype_data)
+    print(("rs%08i\t%s\t%i\t%i\t.\tNA\tNA\tNA\tNA\tNA\tNA\t" % (rs_num, alleles, chrom, pos)) + "\t".join(genotype_data))
     rs_num += 1
