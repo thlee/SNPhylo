@@ -3,15 +3,15 @@ import sys
 import os.path
 
 def help(error_no):
-    print "Remove VCF data which have many low depth of coverage samples"
-    print
-    print "Version: 01072016"
-    print
-    print "Usage:"
-    print "    %s VCF_file Minimum_depth_of_coverage Maximum_%%_of_LCS_number" % os.path.basename(sys.argv[0])
-    print
-    print "Acronyms:"
-    print "    LCS: Low Coverage Sample"
+    print("Remove VCF data which have many low depth of coverage samples")
+    print()
+    print("Version: 01072016")
+    print()
+    print("Usage:")
+    print("    %s VCF_file Minimum_depth_of_coverage Maximum_%%_of_LCS_number" % os.path.basename(sys.argv[0]))
+    print()
+    print("Acronyms:")
+    print("    LCS: Low Coverage Sample")
     sys.exit(error_no)
 
 if len(sys.argv) != 4: help(1)
@@ -21,7 +21,7 @@ min_depth = int(sys.argv[2])
 max_lcs_percent = float(sys.argv[3])
 
 if not os.path.exists(vcf_filepath):
-    print >> sys.stderr, "VCF file (%s) was not found!" % vcf_filepath
+    print("VCF file (%s) was not found!" % vcf_filepath, file=sys.stderr)
     sys.exit(1)
 
 num_wrong_chr_id = 0
@@ -58,7 +58,7 @@ with open(vcf_filepath, "r") as vcf_file:
             try:
                 gt_col_no = format_col.index('GT')
             except ValueError:
-                print >> sys.stderr, "\nWarning: CHROM: %s, POS: %s did not have genotype data." % tuple(vcf_data[:2])
+                print("\nWarning: CHROM: %s, POS: %s did not have genotype data." % tuple(vcf_data[:2]), file=sys.stderr)
                 continue    
     
             num_low_depth_sample = 0
@@ -77,7 +77,7 @@ with open(vcf_filepath, "r") as vcf_file:
                         num_pass_wo_dp_test += 1
 
             if max_num_low_depth_sample < 0:
-                print >> sys.stderr, "\nError: There is no header line in the VCF file."
+                print("\nError: There is no header line in the VCF file.", file=sys.stderr)
                 sys.exit(1)
     
             if num_low_depth_sample < max_num_low_depth_sample:
@@ -86,13 +86,13 @@ with open(vcf_filepath, "r") as vcf_file:
 determine_was_were = lambda x: "were" if x > 1 else "was"
 
 if num_wrong_chr_id > 0:
-    print >> sys.stderr, "\nWarning: There %s %i unreadable chromosome id%s. Identifier for a chromosome should be a number." % \
-        (determine_was_were(num_wrong_chr_id), num_wrong_chr_id, "s" if num_wrong_chr_id > 1 else "")
+    print("\nWarning: There %s %i unreadable chromosome id%s. Identifier for a chromosome should be a number." % \
+        (determine_was_were(num_wrong_chr_id), num_wrong_chr_id, "s" if num_wrong_chr_id > 1 else ""), file=sys.stderr)
 
 if num_no_dp_data > 0:
-    print >> sys.stderr, "\nWarning: There %s %i SNP position%s which did not have DP information." % \
-        (determine_was_were(num_no_dp_data), num_no_dp_data, "s" if num_no_dp_data > 1 else "")
+    print("\nWarning: There %s %i SNP position%s which did not have DP information." % \
+        (determine_was_were(num_no_dp_data), num_no_dp_data, "s" if num_no_dp_data > 1 else ""), file=sys.stderr)
 
 if num_pass_wo_dp_test > 0:
-    print >> sys.stderr, "\nWarning: %i SNP%s %s passed without the read depth assessment because of the absence of the DP column." % \
-        (num_pass_wo_dp_test, "s" if num_pass_wo_dp_test > 1 else "", determine_was_were(num_pass_wo_dp_test))
+    print("\nWarning: %i SNP%s %s passed without the read depth assessment because of the absence of the DP column." % \
+        (num_pass_wo_dp_test, "s" if num_pass_wo_dp_test > 1 else "", determine_was_were(num_pass_wo_dp_test)), file=sys.stderr)
